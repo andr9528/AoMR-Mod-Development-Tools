@@ -1,4 +1,4 @@
-namespace Tools.Styles;
+namespace Tools.Uno.Styles;
 
 public sealed class MaterialFontsOverride : ResourceDictionary
 {

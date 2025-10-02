@@ -1,4 +1,4 @@
-namespace Tools.Model;
+namespace Tools.Model.Mod;
 
 public class Target
 {

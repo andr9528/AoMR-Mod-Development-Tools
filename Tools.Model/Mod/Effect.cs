@@ -1,6 +1,6 @@
 using Tools.Abstraction.Enum;
 
-namespace Tools.Model;
+namespace Tools.Model.Mod;
 
 public class Effect
 {

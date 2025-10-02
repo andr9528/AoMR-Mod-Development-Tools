@@ -2,7 +2,10 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Tools.Abstraction.Enum;
 using Tools.Model;
+using Tools.Model.Mod;
 using Tools.Persistence;
+
+// ReSharper disable CommentTypo
 
 namespace Tools.Service;
 
@@ -13,6 +16,14 @@ public class RelicModService
     // list of techs we care about, based on enum
     private readonly HashSet<TechName> _watchedTechs = new()
     {
+        TechName.PLOW_BONUS, // PlowBonus
+        TechName.IRRIGATION_BONUS, // IrrigationBonus
+        TechName.FLOOD_CONTROL_BONUS, // FloodControlBonus
+        TechName.TAIL_OF_FEI_RESPAWN, // TailOfFeiRespawn
+        TechName.TUSK_OF_DANGKANG_SPAWN, // TuskOfDangkangSpawn
+        TechName.BRIDLE_OF_PEGASUS_RESPAWN, // BridleOfPegasusRespawn
+        TechName.GOLDEN_LIONS_RESPAWN, // GoldenLionsRespawn
+        TechName.RELIC_MONKEY_RESPAWN, // RelicMonkeyRespawn
         TechName.RELIC_ANKHOF_RA, // RelicAnkhofRa
         TechName.RELIC_EYE_OF_HORUS, // RelicEyeOfHorus
         TechName.RELIC_SISTRUM_OF_BAST, // RelicSistrumOfBast
@@ -29,7 +40,6 @@ public class RelicModService
         TechName.RELIC_ARROWS_OF_ALFAR, // RelicArrowsOfAlfar
         TechName.RELIC_ARROWS_OF_HERACLES, // RelicArrowsOfHeracles
         TechName.RELIC_GAMBANTEINN_ODINS_WAND, // RelicGambanteinnOdinsWand
-        TechName.BRIDLE_OF_PEGASUS_RESPAWN, // BridleOfPegasusRespawn
         TechName.RELIC_ULLRS_BOW, // RelicUllrsBow
         TechName.RELIC_BLUE_CRYSTAL_SHARD, // RelicBlueCrystalShard
         TechName.RELIC_ARMOR_OF_ACHILLES, // RelicArmorOfAchilles
@@ -41,8 +51,6 @@ public class RelicModService
         TechName.RELIC_THUNDERCLOUD_SHAWL, // RelicThundercloudShawl
         TechName.RELIC_HARMONIAS_NECKLACE, // RelicHarmoniasNecklace
         TechName.RELIC_DWARVEN_CALIPERS, // RelicDwarvenCalipers
-        TechName.GOLDEN_LIONS_RESPAWN, // GoldenLionsRespawn
-        TechName.RELIC_MONKEY_RESPAWN, // RelicMonkeyRespawn
         TechName.RELIC_CANOPIC_JAR_OF_IMSETY, // RelicCanopicJarOfImsety
         TechName.RELIC_TOWER_OF_SESTUS, // RelicTowerOfSestus
         TechName.RELIC_TROJAN_GATE_HINGE, // RelicTrojanGateHinge
@@ -77,18 +85,48 @@ public class RelicModService
         TechName.RELIC_XUAN_YUAN_SWORD, // RelicXuanYuanSword
         TechName.RELIC_KUI_DRUM, // RelicKuiDrum
         TechName.RELIC_FIVE_COLORED_STONE_OF_NUWA, // RelicFiveColoredStoneOfNuwa
-        TechName.PLOW_BONUS, // PlowBonus
-        TechName.IRRIGATION_BONUS, // IrrigationBonus
-        TechName.FLOOD_CONTROL_BONUS, // FloodControlBonus
         TechName.RELIC_NINE_CAULDRONS, // RelicNineCauldrons
         TechName.RELIC_FUR_OF_BOYI, // RelicFurOfBoyi
         TechName.RELIC_WUHAO_BOW_OF_HUANGDI, // RelicWuhaoBowOfHuangdi
         TechName.RELIC_FEATHER_OF_BIFANG, // RelicFeatherOfBifang
-        TechName.TAIL_OF_FEI_RESPAWN, // TailOfFeiRespawn
-        TechName.TUSK_OF_DANGKANG_SPAWN, // TuskOfDangkangSpawn
         TechName.RELIC_FEATHER_OF_JINGWEI, // RelicFeatherOfJingwei
         TechName.RELIC_JADE_HARE, // RelicJadeHare
         TechName.RELIC_XIRANG, // RelicXirang
+        TechName.RELIC_BRIDLE_OF_PEGASUS, // RelicBridleOfPegasus
+        TechName.RELIC_CHARIOT_OF_CYBELE, // RelicChariotOfCybele
+        TechName.RELIC_SKULLS_OF_THE_CERCOPES, // RelicSkullsOfTheCercopes
+        TechName.RELIC_HARTERS_FOLLY, // RelicHartersFolly
+        TechName.RELIC_FLAGSTONE_OF_BUHEN, // RelicFlagstoneOfBuhen
+        TechName.RELIC_SVADILFARIS_SLEDGE, // RelicSvadilfarisSledge
+        TechName.RELIC_TUSK_OF_DANGKANG, // RelicTuskOfDangkang
+        TechName.RELIC_TAIL_OF_FEI, // RelicTailOfFei
+        TechName.RELIC_OCHRE_WHIP_OF_SHENNONG, // RelicOchreWhipOfShennong
+        TechName.RELIC_TAIL_FEATHERS_OF_HEAVEN, // RelicTailFeathersOfHeaven
+        TechName.RELIC_LITTLE_CROW_CIRCLE, // RelicLittleCrowCircle
+        TechName.RELIC_HEAVENLY_JEWELED_SPEAR, // RelicHeavenlyJeweledSpear
+        TechName.RELIC_OKUNINUSHIS_COVENANT, // RelicOkuninushisCovenant
+        TechName.RELIC_HOORIS_HUNTING_BOW, // RelicHoorisHuntingBow
+        TechName.RELIC_NINE_TAILED_FOX_CHARM, // RelicNineTailedFoxCharm
+        TechName.RELIC_GRASS_CUTTING_SWORD, // RelicGrassCuttingSword
+        TechName.RELIC_TAWARA_TODAS_LAST_ARROW, // RelicTawaraTodasLastArrow
+        TechName.RELIC_OGRE_BITTEN_HELM, // RelicOgreBittenHelm
+        TechName.RELIC_DRAGON_PALACE_CRYSTAL, // RelicDragonPalaceCrystal
+        TechName.RELIC_AME_NO_MURAKUMO_NO_TSURUGI, // RelicAmeNoMurakumoNoTsurugi
+        TechName.RELIC_CUP_OF_DIONYSUS, // RelicCupOfDionysus
+        TechName.RELIC_SHIELD_OF_ATHENA, // RelicShieldOfAthena
+        TechName.RELIC_CROWN_OF_HERA, // RelicCrownOfHera
+        TechName.RELIC_ZEUS_THUNDERBOLTS, // RelicZeusThunderbolts
+        TechName.RELIC_RELIC_OF_PROSPERITY, // RelicRelicOfProsperity
+        TechName.RELIC_RELIC_OF_BRONZE, // RelicRelicOfBronze
+        TechName.RELIC_RELIC_OF_EARTHQUAKE, // RelicRelicOfEarthquake
+        TechName.RELIC_RELIC_OF_ANCESTORS, // RelicRelicOfAncestors
+        TechName.RELIC_RELIC_OF_TORNADO, // RelicRelicOfTornado
+        TechName.RELIC_ONIKIRI_DEMON_SLAYER, // RelicOnikiriDemonSlayer
+        TechName.RELIC_FRAGMENT_OF_THE_KILLING_STONE, // RelicFragmentOfTheKillingStone
+        TechName.RELIC_HODERIS_LOST_FISH_HOOK, // RelicHoderisLostFishHook
+        TechName.RELIC_DECEPTIVE_WOODEN_SWORD, // RelicDeceptiveWoodenSword
+        TechName.RELIC_SHACHIHOKO_ORNAMENT, // RelicShachihokoOrnament
+        TechName.RELIC_CARTOGRAPHERS_HOURGLASS, // RelicCartographersHourglass
         // ... add all other relic techs you want
     };
 
@@ -124,9 +162,13 @@ public class RelicModService
     {
         foreach (Effect effect in tech.Effects)
         {
+            if (effect.MergeMode == MergeMode.ADD || effect.Amount == 0)
+            {
+                continue; // only modify effects that add values
+            }
+
             double newAmount = CalculateNewAmount(effect.Relativity, effect.Amount, multiplier);
 
-            // Example: multiply numeric effect amounts
             var newEffect = new Effect
             {
                 MergeMode = MergeMode.ADD,
@@ -197,6 +239,7 @@ public class RelicModService
 
     public XDocument ExportToXml()
     {
+        // Gets all techs that have 1+ ADD effects
         var techs = _db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
             .ThenInclude(effect => effect.Targets).ToList();
 
@@ -209,40 +252,10 @@ public class RelicModService
 
             var effectsElem = new XElement("effects");
 
-            foreach (Effect effect in tech.Effects.Where(e => e.MergeMode == MergeMode.ADD))
+            foreach ((Effect add, Effect remove) in FindEffectPairs(tech))
             {
-                var effectElem = new XElement("effect",
-                    new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
-                    new XAttribute("amount", effect.Amount.ToString("0.00")), // 🔹 round to 2 decimals
-                    new XAttribute("subtype", effect.Subtype), new XAttribute("relativity", effect.Relativity));
-
-                if (!string.IsNullOrEmpty(effect.Action))
-                {
-                    effectElem.Add(new XAttribute("action", effect.Action));
-                }
-
-                if (!string.IsNullOrEmpty(effect.Resource))
-                {
-                    effectElem.Add(new XAttribute("resource", effect.Resource));
-                }
-
-                if (!string.IsNullOrEmpty(effect.Unit))
-                {
-                    effectElem.Add(new XAttribute("unit", effect.Unit));
-                }
-
-                if (!string.IsNullOrEmpty(effect.Generator))
-                {
-                    effectElem.Add(new XAttribute("generator", effect.Generator));
-                }
-
-                foreach (Target target in effect.Targets)
-                {
-                    effectElem.Add(new XElement("target", new XAttribute("type", target.Type),
-                        target.Value ?? string.Empty));
-                }
-
-                effectsElem.Add(effectElem);
+                AddEffectToXml(effectsElem, remove);
+                AddEffectToXml(effectsElem, add);
             }
 
             techElem.Add(effectsElem);
@@ -250,5 +263,55 @@ public class RelicModService
         }
 
         return new XDocument(root);
+    }
+
+    private bool HasMatchingTarget(Effect add, Effect remove)
+    {
+        return add.Targets.Any(t1 => remove.Targets.Any(t2 => t1.Value == t2.Value));
+    }
+
+    private IEnumerable<(Effect Add, Effect Remove)> FindEffectPairs(Tech tech)
+    {
+        var effectPairs = from add in tech.Effects
+            from remove in tech.Effects
+            where add.MergeMode == MergeMode.ADD && remove.MergeMode == MergeMode.REMOVE &&
+                  HasMatchingTarget(add, remove)
+            select (Add: add, Remove: remove);
+
+        return effectPairs;
+    }
+
+    private void AddEffectToXml(XElement effectsElement, Effect effect)
+    {
+        var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
+            new XAttribute("amount", effect.Amount.ToString("0.00")), // 🔹 round to 2 decimals
+            new XAttribute("subtype", effect.Subtype), new XAttribute("relativity", effect.Relativity));
+
+        if (!string.IsNullOrEmpty(effect.Action))
+        {
+            effectElem.Add(new XAttribute("action", effect.Action));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Resource))
+        {
+            effectElem.Add(new XAttribute("resource", effect.Resource));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Unit))
+        {
+            effectElem.Add(new XAttribute("unit", effect.Unit));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Generator))
+        {
+            effectElem.Add(new XAttribute("generator", effect.Generator));
+        }
+
+        foreach (Target target in effect.Targets)
+        {
+            effectElem.Add(new XElement("target", new XAttribute("type", target.Type), target.Value ?? string.Empty));
+        }
+
+        effectsElement.Add(effectElem);
     }
 }

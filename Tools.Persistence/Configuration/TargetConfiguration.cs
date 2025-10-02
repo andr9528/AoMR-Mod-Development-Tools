@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tools.Model;
+using Tools.Model.Mod;
 
 namespace Tools.Persistence.Configuration;
 

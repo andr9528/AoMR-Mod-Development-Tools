@@ -1,4 +1,4 @@
-namespace Tools.Models;
+namespace Tools.Model.Uno;
 
 public record AppConfig
 {

@@ -1,19 +1,15 @@
+using Tools.Uno;
 using Uno.UI.Hosting;
 
 namespace Tools;
+
 internal class Program
 {
     [STAThread]
     public static void Main(string[] args)
     {
-
-        var host = UnoPlatformHostBuilder.Create()
-            .App(() => new App())
-            .UseX11()
-            .UseLinuxFrameBuffer()
-            .UseMacOS()
-            .UseWin32()
-            .Build();
+        UnoPlatformHost host = UnoPlatformHostBuilder.Create().App(() => new App()).UseX11().UseLinuxFrameBuffer()
+            .UseMacOS().UseWin32().Build();
 
         host.Run();
     }

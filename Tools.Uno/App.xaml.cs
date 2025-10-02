@@ -1,9 +1,10 @@
 using Tools.Abstraction.Interfaces;
+using Tools.Model.Uno;
 using Tools.Service;
 using Tools.Uno.Extensions;
-using Uno.Resizetizer;
+using Tools.Uno.Styles;
 
-namespace Tools;
+namespace Tools.Uno;
 
 public partial class App : Application
 {
@@ -25,8 +26,8 @@ public partial class App : Application
         Resources.Build(r => r.Merged(new XamlControlsResources()));
 
         // Load Uno.UI.Toolkit and Material Resources
-        Resources.Build(r => r.Merged(
-            new MaterialToolkitTheme(new Styles.ColorPaletteOverride(), new Styles.MaterialFontsOverride())));
+        Resources.Build(
+            r => r.Merged(new MaterialToolkitTheme(new ColorPaletteOverride(), new MaterialFontsOverride())));
         IApplicationBuilder builder = this.CreateBuilder(args).Configure(ConfigureHost);
         MainWindow = builder.Window;
 

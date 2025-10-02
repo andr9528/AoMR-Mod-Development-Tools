@@ -1,3 +1,5 @@
+using Tools.Model.Uno;
+
 namespace Tools.Tests.Uno;
 
 public class AppInfoTests

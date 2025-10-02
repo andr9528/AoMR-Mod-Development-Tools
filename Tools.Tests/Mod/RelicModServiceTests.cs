@@ -1,5 +1,8 @@
 using System.Reflection;
+using Moq;
 using Tools.Abstraction.Enum;
+using Tools.Model.Mod;
+using Tools.Persistence;
 using Tools.Service;
 
 namespace Tools.Tests.Mod;
@@ -12,10 +15,10 @@ public class RelicModServiceTests
     [SetUp]
     public void Setup()
     {
-        // We don’t need a DbContext for these tests, so just create an uninitialized object
-        _service =
-            (RelicModService) System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
-                typeof(RelicModService));
+        // Create a mock DbContext (no setup needed for math-only tests)
+        var mockDb = new Mock<ToolsDatabaseContext>(new object[]
+            {new Microsoft.EntityFrameworkCore.DbContextOptions<ToolsDatabaseContext>(),});
+        _service = new RelicModService(mockDb.Object);
     }
 
     [TestCase(10.0, 5, 50.00)]
@@ -74,11 +77,113 @@ public class RelicModServiceTests
         result.Should().Be(expected);
     }
 
+    [Test]
+    public void FindEffectPairs_ShouldReturnEmpty_WhenNoMatchingTargets()
+    {
+        // Arrange
+        var tech = new Tech
+        {
+            Effects =
+            {
+                new Effect
+                {
+                    MergeMode = MergeMode.ADD,
+                    Targets = {new Target {Type = "Unit", Value = "TownCenter",},},
+                },
+                new Effect
+                {
+                    MergeMode = MergeMode.REMOVE,
+                    Targets = {new Target {Type = "Unit", Value = "Farm",},},
+                },
+            },
+        };
+
+        // Act
+        var pairs = InvokeFindEffectPairs(tech);
+
+        // Assert
+        pairs.Should().BeEmpty();
+    }
+
+    [Test]
+    public void FindEffectPairs_ShouldReturnPair_WhenMatchingTargetExists()
+    {
+        // Arrange
+        var addEffect = new Effect
+        {
+            MergeMode = MergeMode.ADD,
+            Targets = {new Target {Type = "Unit", Value = "TownCenter",},},
+        };
+
+        var removeEffect = new Effect
+        {
+            MergeMode = MergeMode.REMOVE,
+            Targets = {new Target {Type = "Unit", Value = "TownCenter",},},
+        };
+
+        var tech = new Tech {Effects = {addEffect, removeEffect,},};
+
+        // Act
+        var pairs = InvokeFindEffectPairs(tech).ToList();
+
+        // Assert
+        pairs.Should().HaveCount(1);
+        pairs[0].Add.Should().BeSameAs(addEffect);
+        pairs[0].Remove.Should().BeSameAs(removeEffect);
+    }
+
+    [Test]
+    public void FindEffectPairs_ShouldReturnMultiplePairs_WhenMultipleTargetsMatch()
+    {
+        // Arrange
+        var addEffect1 = new Effect
+        {
+            MergeMode = MergeMode.ADD,
+            Targets = {new Target {Type = "Unit", Value = "TownCenter",},},
+        };
+
+        var addEffect2 = new Effect
+        {
+            MergeMode = MergeMode.ADD,
+            Targets = {new Target {Type = "Unit", Value = "Farm",},},
+        };
+
+        var removeEffect1 = new Effect
+        {
+            MergeMode = MergeMode.REMOVE,
+            Targets = {new Target {Type = "Unit", Value = "TownCenter",},},
+        };
+
+        var removeEffect2 = new Effect
+        {
+            MergeMode = MergeMode.REMOVE,
+            Targets = {new Target {Type = "Unit", Value = "Farm",},},
+        };
+
+        var tech = new Tech {Effects = {addEffect1, addEffect2, removeEffect1, removeEffect2,},};
+
+        // Act
+        var pairs = InvokeFindEffectPairs(tech).ToList();
+
+        // Assert
+        pairs.Should().HaveCount(2);
+        pairs.Should().ContainSingle(p => p.Add == addEffect1 && p.Remove == removeEffect1);
+        pairs.Should().ContainSingle(p => p.Add == addEffect2 && p.Remove == removeEffect2);
+    }
+
+    private IEnumerable<(Effect Add, Effect Remove)> InvokeFindEffectPairs(Tech tech)
+    {
+        MethodInfo? method = typeof(RelicModService).GetMethod("FindEffectPairs",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+
+        return (IEnumerable<(Effect Add, Effect Remove)>) method.Invoke(_service, [tech,]);
+    }
+
     private double InvokeCalc(Relativity relativity, double oldAmount, double multiplier)
     {
         MethodInfo? method = typeof(RelicModService).GetMethod("CalculateNewAmount",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        return (double) method.Invoke(_service, new object[] {relativity, oldAmount, multiplier,});
+        return (double) method.Invoke(_service, [relativity, oldAmount, multiplier,]);
     }
 }
