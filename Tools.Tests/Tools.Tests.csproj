@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tools\Tools.Uno.csproj" />
+    <ProjectReference Include="..\Tools.Model\Tools.Model.csproj" />
+    <ProjectReference Include="..\Tools.Service\Tools.Service.csproj" />
   </ItemGroup>
 </Project>

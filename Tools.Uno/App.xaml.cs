@@ -1,6 +1,10 @@
+using Tools.Abstraction.Interfaces;
+using Tools.Service;
+using Tools.Uno.Extensions;
 using Uno.Resizetizer;
 
 namespace Tools;
+
 public partial class App : Application
 {
     /// <summary>
@@ -9,7 +13,7 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     protected Window? MainWindow { get; private set; }
@@ -18,68 +22,18 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         // Load WinUI Resources
-        Resources.Build(r => r.Merged(
-            new XamlControlsResources()));
+        Resources.Build(r => r.Merged(new XamlControlsResources()));
 
         // Load Uno.UI.Toolkit and Material Resources
         Resources.Build(r => r.Merged(
-            new MaterialToolkitTheme(
-                    new Styles.ColorPaletteOverride(),
-                    new Styles.MaterialFontsOverride())));
-        var builder = this.CreateBuilder(args)
-            .Configure(host => host
-#if DEBUG
-                // Switch to Development environment when running in DEBUG
-                .UseEnvironment(Environments.Development)
-#endif
-                .UseLogging(configure: (context, logBuilder) =>
-                {
-                    // Configure log levels for different categories of logging
-                    logBuilder
-                        .SetMinimumLevel(
-                            context.HostingEnvironment.IsDevelopment() ?
-                                LogLevel.Information :
-                                LogLevel.Warning)
-
-                        // Default filters for core Uno Platform namespaces
-                        .CoreLogLevel(LogLevel.Warning);
-
-                    // Uno Platform namespace filter groups
-                    // Uncomment individual methods to see more detailed logging
-                    //// Generic Xaml events
-                    //logBuilder.XamlLogLevel(LogLevel.Debug);
-                    //// Layout specific messages
-                    //logBuilder.XamlLayoutLogLevel(LogLevel.Debug);
-                    //// Storage messages
-                    //logBuilder.StorageLogLevel(LogLevel.Debug);
-                    //// Binding related messages
-                    //logBuilder.XamlBindingLogLevel(LogLevel.Debug);
-                    //// Binder memory references tracking
-                    //logBuilder.BinderMemoryReferenceLogLevel(LogLevel.Debug);
-                    //// DevServer and HotReload related
-                    //logBuilder.HotReloadCoreLogLevel(LogLevel.Information);
-                    //// Debug JS interop
-                    //logBuilder.WebAssemblyLogLevel(LogLevel.Debug);
-
-                }, enableUnoLogging: true)
-                .UseSerilog(consoleLoggingEnabled: true, fileLoggingEnabled: true)
-                .UseConfiguration(configure: configBuilder =>
-                    configBuilder
-                        .EmbeddedSource<App>()
-                        .Section<AppConfig>()
-                )
-                .ConfigureServices((context, services) =>
-                {
-                    // TODO: Register your services
-                    //services.AddSingleton<IMyService, MyService>();
-                })
-            );
+            new MaterialToolkitTheme(new Styles.ColorPaletteOverride(), new Styles.MaterialFontsOverride())));
+        IApplicationBuilder builder = this.CreateBuilder(args).Configure(ConfigureHost);
         MainWindow = builder.Window;
 
 #if DEBUG
         MainWindow.UseStudio();
 #endif
-        MainWindow.SetWindowIcon();
+        //MainWindow.SetWindowIcon();
 
         Host = builder.Build();
 
@@ -101,7 +55,50 @@ public partial class App : Application
             // parameter
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
+
         // Ensure the current window is active
         MainWindow.Activate();
+    }
+
+    private void ConfigureHost(IHostBuilder host)
+    {
+        host
+#if DEBUG
+            // Switch to Development environment when running in DEBUG
+            .UseEnvironment(Environments.Development)
+#endif
+            .UseLogging((context, logBuilder) =>
+            {
+                // Configure log levels for different categories of logging
+                logBuilder.SetMinimumLevel(context.HostingEnvironment.IsDevelopment()
+                        ? LogLevel.Information
+                        : LogLevel.Warning)
+
+                    // Default filters for core Uno Platform namespaces
+                    .CoreLogLevel(LogLevel.Warning);
+
+                // Uno Platform namespace filter groups
+                // Uncomment individual methods to see more detailed logging
+                //// Generic Xaml events
+                //logBuilder.XamlLogLevel(LogLevel.Debug);
+                //// Layout specific messages
+                //logBuilder.XamlLayoutLogLevel(LogLevel.Debug);
+                //// Storage messages
+                //logBuilder.StorageLogLevel(LogLevel.Debug);
+                //// Binding related messages
+                //logBuilder.XamlBindingLogLevel(LogLevel.Debug);
+                //// Binder memory references tracking
+                //logBuilder.BinderMemoryReferenceLogLevel(LogLevel.Debug);
+                //// DevServer and HotReload related
+                //logBuilder.HotReloadCoreLogLevel(LogLevel.Information);
+                //// Debug JS interop
+                //logBuilder.WebAssemblyLogLevel(LogLevel.Debug);
+            }, true).UseSerilog(true, true)
+            .UseConfiguration(configure: configBuilder => configBuilder.EmbeddedSource<App>().Section<AppConfig>())
+            .ConfigureServices((context, services) =>
+            {
+                services.AddToolsDatabase();
+                services.AddScoped<ITechTreeLoader, TechTreeLoaderService>();
+            });
     }
 }
