@@ -1,6 +1,9 @@
+using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Tools.Abstraction.Enum;
+using Tools.Abstraction.Extensions;
 using Tools.Model;
 using Tools.Model.Mod;
 using Tools.Persistence;
@@ -11,6 +14,11 @@ namespace Tools.Service;
 
 public class RelicModService
 {
+    private const string RESOURCE_TRICKLE_RATE_SUBTYPE = "ResourceTrickleRate";
+    private const string COST_SUBTYPE = "Cost";
+    private const string DAMAGE_SUBTYPE = "Damage";
+
+
     private readonly ToolsDatabaseContext _db;
 
     // list of techs we care about, based on enum
@@ -148,46 +156,53 @@ public class RelicModService
     {
         var techs = _db.Techs.ToList();
 
-        foreach (Tech tech in techs)
-        {
-            if (!Enum.TryParse<TechName>(ToScreamingSnake(tech.Name), out TechName techName))
-            {
-                continue;
-            }
+        var tasks = techs.Select(tech => Task.Run(() => ProcessTechForMultiplier(tech, multiplier)));
 
-            if (!_watchedTechs.Contains(techName))
-            {
-                continue;
-            }
-
-            // Custom logic per-tech could live here
-            ApplyMultiplierToTechEffects(tech, multiplier);
-        }
+        await Task.WhenAll(tasks);
 
         await _db.SaveChangesAsync();
     }
 
+    private void ProcessTechForMultiplier(Tech tech, double multiplier)
+    {
+        if (!Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName))
+        {
+            return;
+        }
+
+        if (!_watchedTechs.Contains(techName))
+        {
+            return;
+        }
+
+        ApplyMultiplierToTechEffects(tech, multiplier);
+    }
+
     private void ApplyMultiplierToTechEffects(Tech tech, double multiplier)
     {
-        var techEnum = Enum.TryParse<TechName>(ToScreamingSnake(tech.Name), out TechName techName)
+        var techEnum = Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName)
             ? techName
             : (TechName?) null;
+
+        var newEffects = new List<Effect>();
 
         foreach (Effect effect in tech.Effects)
         {
             if (effect.Amount != 0)
             {
-                ApplyAmountEffect(tech, effect, multiplier);
+                newEffects.Add(ApplyAmountEffect(effect, multiplier));
             }
 
             if (techEnum.HasValue && _patternBasedTechs.Contains(techEnum.Value))
             {
-                ApplyPatternEffect(tech, effect, multiplier);
+                newEffects.Add(ApplyPatternEffect(effect, multiplier));
             }
         }
+
+        tech.Effects.AddRange(newEffects);
     }
 
-    private void ApplyAmountEffect(Tech tech, Effect effect, double multiplier)
+    private Effect ApplyAmountEffect(Effect effect, double multiplier)
     {
         double newAmount = CalculateNewAmount(effect.Relativity, effect.Amount, multiplier);
 
@@ -195,18 +210,18 @@ public class RelicModService
         newEffect.Amount = newAmount;
         newEffect.MergeMode = MergeMode.ADD;
 
-        tech.Effects.Add(newEffect);
+        return newEffect;
     }
 
-    private void ApplyPatternEffect(Tech tech, Effect effect, double multiplier)
+    private Effect ApplyPatternEffect(Effect effect, double multiplier)
     {
+        Effect newEffect = CloneEffect(effect);
+        newEffect.MergeMode = MergeMode.ADD;
+        newEffect.Amount = 0; // no amount, only pattern
+
         foreach (Pattern pattern in effect.Patterns)
         {
             var newQuantity = (int) Math.Round(pattern.Quantity * multiplier);
-
-            Effect newEffect = CloneEffect(effect);
-            newEffect.MergeMode = MergeMode.ADD;
-            newEffect.Amount = 0; // no amount, only pattern
 
             newEffect.Patterns.Clear();
             newEffect.Patterns.Add(new Pattern
@@ -215,9 +230,9 @@ public class RelicModService
                 Value = pattern.Value,
                 Quantity = newQuantity,
             });
-
-            tech.Effects.Add(newEffect);
         }
+
+        return newEffect;
     }
 
     private Effect CloneEffect(Effect effect)
@@ -270,106 +285,5 @@ public class RelicModService
 
         // 🔹 Normalize to 2 decimals before saving
         return Math.Round(result, 2);
-    }
-
-
-    private string ToScreamingSnake(string name)
-    {
-        // match enum naming convention
-        string s1 = System.Text.RegularExpressions.Regex.Replace(name, "(.)([A-Z][a-z]+)", "$1_$2");
-        string s2 = System.Text.RegularExpressions.Regex.Replace(s1, "([a-z0-9])([A-Z])", "$1_$2");
-        return s2.ToUpper();
-    }
-
-    public XDocument ExportToXml()
-    {
-        // Gets all techs that have 1+ ADD effects
-        var techs = _db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
-            .ThenInclude(effect => effect.Targets).Include(tech => tech.Effects).ThenInclude(effect => effect.Patterns)
-            .ToList();
-
-        var root = new XElement("techtreemods");
-
-        foreach (Tech tech in techs)
-        {
-            var techElem = new XElement("tech", new XAttribute("name", tech.Name),
-                new XAttribute("type", tech.Type ?? "Normal"));
-
-            var effectsElem = new XElement("effects");
-
-            foreach ((Effect add, Effect remove) in FindEffectPairs(tech))
-            {
-                AddEffectToXml(effectsElem, remove);
-                AddEffectToXml(effectsElem, add);
-            }
-
-            techElem.Add(effectsElem);
-            root.Add(techElem);
-        }
-
-        return new XDocument(root);
-    }
-
-    private bool HasMatchingTarget(Effect add, Effect remove)
-    {
-        return add.Targets.Any(t1 => remove.Targets.Any(t2 => t1.Value == t2.Value));
-    }
-
-    private IEnumerable<(Effect Add, Effect Remove)> FindEffectPairs(Tech tech)
-    {
-        var effectPairs = from add in tech.Effects
-            from remove in tech.Effects
-            where add.MergeMode == MergeMode.ADD && remove.MergeMode == MergeMode.REMOVE &&
-                  HasMatchingTarget(add, remove)
-            select (Add: add, Remove: remove);
-
-        return effectPairs;
-    }
-
-    private void AddEffectToXml(XElement effectsElement, Effect effect)
-    {
-        var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
-            new XAttribute("subtype", effect.Subtype), new XAttribute("relativity", effect.Relativity));
-
-        // Only include amount if it's meaningful (non-zero)
-        if (effect.Amount != 0)
-        {
-            effectElem.Add(new XAttribute("amount", effect.Amount.ToString("0.00"))); // rounded to 2 decimals
-        }
-
-        if (!string.IsNullOrEmpty(effect.Action))
-        {
-            effectElem.Add(new XAttribute("action", effect.Action));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Resource))
-        {
-            effectElem.Add(new XAttribute("resource", effect.Resource));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Unit))
-        {
-            effectElem.Add(new XAttribute("unit", effect.Unit));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Generator))
-        {
-            effectElem.Add(new XAttribute("generator", effect.Generator));
-        }
-
-        foreach (Target target in effect.Targets)
-        {
-            effectElem.Add(new XElement("target", new XAttribute("type", target.Type), target.Value ?? string.Empty));
-        }
-
-        foreach (Pattern pattern in effect.Patterns)
-        {
-            var patternElem = new XElement("pattern", new XAttribute("type", pattern.Type),
-                new XAttribute("value", pattern.Value), new XAttribute("quantity", pattern.Quantity));
-
-            effectElem.Add(patternElem);
-        }
-
-        effectsElement.Add(effectElem);
     }
 }

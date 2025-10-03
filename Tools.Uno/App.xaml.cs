@@ -104,6 +104,7 @@ public partial class App : Application
             {
                 services.AddToolsDatabase();
                 services.AddScoped<ITechTreeLoader, TechTreeLoaderService>();
+                services.AddScoped<ITechTreeExporter, TechTreeExportService>();
                 services.AddScoped<RelicModService>();
 
                 services.AddSingleton<IModRegion, RelicModRegionDefinition>();

@@ -16,8 +16,8 @@ public class Effect
     public string? Generator { get; set; }
     public Relativity Relativity { get; set; }
 
-    public ICollection<Target> Targets { get; set; } = new List<Target>();
-    public ICollection<Pattern> Patterns { get; set; } = new List<Pattern>();
+    public List<Target> Targets { get; set; } = new();
+    public List<Pattern> Patterns { get; set; } = new();
 
 
     public int TechId { get; set; }

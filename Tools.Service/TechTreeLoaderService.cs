@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Xml.Linq;
 using Tools.Abstraction.Enum;
 using Tools.Abstraction.Interfaces;
@@ -42,7 +43,10 @@ public class TechTreeLoaderService : ITechTreeLoader
                     MergeMode = ParseEnum<MergeMode>((string) effectElem.Attribute("mergeMode") ?? "remove"),
                     Type = (string) effectElem.Attribute("type") ?? string.Empty,
                     Action = (string) effectElem.Attribute("action"),
-                    Amount = double.TryParse((string) effectElem.Attribute("amount"), out double amt) ? amt : 0,
+                    Amount = double.TryParse((string) effectElem.Attribute("amount"),
+                        NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double amt)
+                        ? amt
+                        : 0,
                     Subtype = (string) effectElem.Attribute("subtype") ?? string.Empty,
                     Resource = (string) effectElem.Attribute("resource"),
                     Unit = (string) effectElem.Attribute("unit"),

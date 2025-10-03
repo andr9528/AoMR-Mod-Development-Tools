@@ -9,11 +9,13 @@ public class RelicModRegionLogic
 {
     private readonly RelicModService relicService;
     private readonly ITechTreeLoader loader;
+    private readonly ITechTreeExporter exporter;
 
-    public RelicModRegionLogic(RelicModService relicService, ITechTreeLoader loader)
+    public RelicModRegionLogic(RelicModService relicService, ITechTreeLoader loader, ITechTreeExporter exporter)
     {
         this.relicService = relicService;
         this.loader = loader;
+        this.exporter = exporter;
     }
 
     public async Task SelectFileAsync(ViewModel.RelicModRegionViewModel vm)
@@ -28,11 +30,14 @@ public class RelicModRegionLogic
         if (file != null)
         {
             vm.InputFile = file.Path;
+            vm.Status = $"File selected ({vm.InputFile}). Waiting...";
         }
     }
 
     public async Task RunAsync(ViewModel.RelicModRegionViewModel viewModel)
     {
+        viewModel.Status = "Generating...";
+
         if (string.IsNullOrEmpty(viewModel.InputFile))
         {
             viewModel.Status = "Please select a techtree.xml file first.";
@@ -53,7 +58,7 @@ public class RelicModRegionLogic
             viewModel.Status = "Applying multiplier...";
             await relicService.ApplyMultiplierAsync(viewModel.Multiplier);
 
-            XDocument output = relicService.ExportToXml();
+            XDocument output = exporter.ExportToXml();
             string outPath = Path.Combine(Path.GetDirectoryName((string?) viewModel.InputFile)!, "techtree_mods.xml");
             output.Save(outPath);
 
@@ -61,6 +66,7 @@ public class RelicModRegionLogic
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex);
             viewModel.Status = $"Error: {ex.Message}";
         }
     }
