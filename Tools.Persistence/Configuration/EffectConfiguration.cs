@@ -23,6 +23,10 @@ public class EffectConfiguration : IEntityTypeConfiguration<Effect>
 
         builder.Property(e => e.Unit).HasMaxLength(100);
 
+        builder.Property(e => e.UnitType).HasMaxLength(100);
+
+        builder.Property(e => e.ArmorType).HasMaxLength(100);
+
         builder.Property(e => e.Generator).HasMaxLength(100);
 
         builder.Property(e => e.Amount).HasColumnType("REAL"); // SQLite numeric

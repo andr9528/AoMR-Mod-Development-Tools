@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FastCloner" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Tools.Abstraction\Tools.Abstraction.csproj" />
     <ProjectReference Include="..\Tools.Persistence\Tools.Persistence.csproj" />
   </ItemGroup>

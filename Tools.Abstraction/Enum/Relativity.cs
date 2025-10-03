@@ -2,6 +2,7 @@ namespace Tools.Abstraction.Enum;
 
 public enum Relativity
 {
+    NULL,
     ABSOLUTE,
     PERCENT,
     BASE_PERCENT,

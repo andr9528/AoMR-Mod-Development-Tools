@@ -1,6 +1,7 @@
 using System.Xml.Linq;
 using Tools.Abstraction.Interfaces;
 using Tools.Service;
+using Tools.Uno.Presentation.Region.ViewModels;
 using Path = System.IO.Path;
 
 namespace Tools.Uno.Presentation.Region.Logic;
@@ -18,7 +19,7 @@ public class RelicModRegionLogic
         this.exporter = exporter;
     }
 
-    public async Task SelectFileAsync(ViewModel.RelicModRegionViewModel vm)
+    public async Task SelectFileAsync(RelicModRegionViewModel viewModel)
     {
         var picker = new Windows.Storage.Pickers.FileOpenPicker();
         picker.FileTypeFilter.Add(".xml");
@@ -29,12 +30,12 @@ public class RelicModRegionLogic
         StorageFile? file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            vm.InputFile = file.Path;
-            vm.Status = $"File selected ({vm.InputFile}). Waiting...";
+            viewModel.InputFile = file.Path;
+            viewModel.Status = $"File selected ({viewModel.InputFile}). Waiting...";
         }
     }
 
-    public async Task RunAsync(ViewModel.RelicModRegionViewModel viewModel)
+    public async Task RunAsync(RelicModRegionViewModel viewModel)
     {
         viewModel.Status = "Generating...";
 

@@ -14,7 +14,10 @@ public class Effect
     public string? Resource { get; set; }
     public string? Unit { get; set; }
     public string? Generator { get; set; }
-    public Relativity Relativity { get; set; }
+    public string? UnitType { get; set; }
+    public string? ArmorType { get; set; }
+    public string? IgnoreRally { get; set; }
+    public Relativity? Relativity { get; set; }
 
     public List<Target> Targets { get; set; } = new();
     public List<Pattern> Patterns { get; set; } = new();

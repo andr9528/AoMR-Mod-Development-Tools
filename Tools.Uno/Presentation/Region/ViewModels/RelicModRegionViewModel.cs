@@ -1,4 +1,4 @@
-namespace Tools.Uno.Presentation.Region.ViewModel;
+namespace Tools.Uno.Presentation.Region.ViewModels;
 
 public partial class RelicModRegionViewModel : ObservableObject
 {

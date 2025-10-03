@@ -3,7 +3,7 @@ using Tools.Uno.Presentation.Converter;
 using Tools.Uno.Presentation.Core;
 using Tools.Uno.Presentation.Factory;
 using Tools.Uno.Presentation.Region.Logic;
-using Tools.Uno.Presentation.Region.ViewModel;
+using Tools.Uno.Presentation.Region.ViewModels;
 
 namespace Tools.Uno.Presentation.Region.UserInterface;
 

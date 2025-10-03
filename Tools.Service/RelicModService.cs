@@ -14,10 +14,30 @@ namespace Tools.Service;
 
 public class RelicModService
 {
-    private const string RESOURCE_TRICKLE_RATE_SUBTYPE = "ResourceTrickleRate";
-    private const string COST_SUBTYPE = "Cost";
-    private const string DAMAGE_SUBTYPE = "Damage";
+    private const string ARMOR_VULNERABILITY_SUBTYPE = "ArmorVulnerability";
+    private const string ON_HIT_EFFECT_SUBTYPE = "OnHitEffect";
 
+    private static readonly Dictionary<(Relativity Rel, string Subtype), Func<double, int, double>> MathRules = new()
+    {
+        // Percent with negative subtype "ArmorVulnerability"
+        [(Relativity.PERCENT, ARMOR_VULNERABILITY_SUBTYPE)] = (old, mul) =>
+        {
+            double result = old * mul;
+            return result < -0.95 ? -0.95 : result;
+        },
+    };
+
+    private static readonly Dictionary<(TechName Tech, Relativity Rel, string Subtype), Func<double, int, double>>
+        TechSpecificMathRules = new()
+        {
+            // Wuhao Bow of Huangdi: Absolute but should behave like "BASE_PERCENT" style
+            [(TechName.RELIC_WUHAO_BOW_OF_HUANGDI, Relativity.ASSIGN, ON_HIT_EFFECT_SUBTYPE)] = (old, mul) =>
+            {
+                // Example: 0.85 → 0.25 at multiplier=5
+                double result = (old - 1) * mul + 1;
+                return result < 0.05 ? 0.05 : result;
+            },
+        };
 
     private readonly ToolsDatabaseContext _db;
 
@@ -152,7 +172,7 @@ public class RelicModService
         _db = db;
     }
 
-    public async Task ApplyMultiplierAsync(double multiplier)
+    public async Task ApplyMultiplierAsync(int multiplier)
     {
         var techs = _db.Techs.ToList();
 
@@ -163,7 +183,7 @@ public class RelicModService
         await _db.SaveChangesAsync();
     }
 
-    private void ProcessTechForMultiplier(Tech tech, double multiplier)
+    private void ProcessTechForMultiplier(Tech tech, int multiplier)
     {
         if (!Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName))
         {
@@ -178,7 +198,7 @@ public class RelicModService
         ApplyMultiplierToTechEffects(tech, multiplier);
     }
 
-    private void ApplyMultiplierToTechEffects(Tech tech, double multiplier)
+    private void ApplyMultiplierToTechEffects(Tech tech, int multiplier)
     {
         var techEnum = Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName)
             ? techName
@@ -202,9 +222,20 @@ public class RelicModService
         tech.Effects.AddRange(newEffects);
     }
 
-    private Effect ApplyAmountEffect(Effect effect, double multiplier)
+    private Effect ApplyAmountEffect(Effect effect, int multiplier)
     {
-        double newAmount = CalculateNewAmount(effect.Relativity, effect.Amount, multiplier);
+        if (effect.Relativity == null)
+        {
+            throw new ArgumentNullException(nameof(effect.Relativity), $"Expected a non-null value for property.");
+        }
+
+        var techEnum =
+            Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(effect.Tech?.Name ?? ""), out TechName tn)
+                ? tn
+                : (TechName?) null;
+
+        double newAmount = CalculateNewAmount(techEnum, (Relativity) effect.Relativity, effect.Amount, multiplier,
+            effect.Subtype);
 
         Effect newEffect = CloneEffect(effect);
         newEffect.Amount = newAmount;
@@ -213,77 +244,76 @@ public class RelicModService
         return newEffect;
     }
 
-    private Effect ApplyPatternEffect(Effect effect, double multiplier)
+    private Effect ApplyPatternEffect(Effect effect, int multiplier)
     {
         Effect newEffect = CloneEffect(effect);
         newEffect.MergeMode = MergeMode.ADD;
-        newEffect.Amount = 0; // no amount, only pattern
+        newEffect.Amount = 0;
 
-        foreach (Pattern pattern in effect.Patterns)
+        foreach (Pattern pattern in effect.Patterns.Select(x => BuildPattern(x, multiplier)))
         {
-            var newQuantity = (int) Math.Round(pattern.Quantity * multiplier);
-
             newEffect.Patterns.Clear();
-            newEffect.Patterns.Add(new Pattern
-            {
-                Type = pattern.Type,
-                Value = pattern.Value,
-                Quantity = newQuantity,
-            });
+            newEffect.Patterns.Add(pattern);
         }
 
         return newEffect;
     }
 
-    private Effect CloneEffect(Effect effect)
+    private Pattern BuildPattern(Pattern pattern, int multiplier)
     {
-        return new Effect
+        return new Pattern
         {
-            Type = effect.Type,
-            Action = effect.Action,
-            Subtype = effect.Subtype,
-            Resource = effect.Resource,
-            Unit = effect.Unit,
-            Generator = effect.Generator,
-            Relativity = effect.Relativity,
-            Targets = effect.Targets.Select(t => new Target
-            {
-                Type = t.Type,
-                Value = t.Value,
-            }).ToList(),
+            Type = pattern.Type,
+            Value = pattern.Value,
+            Speed = pattern.Speed,
+            Radius = pattern.Radius,
+            MinRadius = pattern.MinRadius,
+            OffsetX = pattern.OffsetX,
+            OffsetY = pattern.OffsetY,
+            OffsetZ = pattern.OffsetZ,
+
+            Quantity = Math.Round(pattern.Quantity * multiplier, 2), // 🔹 important
         };
     }
 
-    private double CalculateNewAmount(Relativity relativity, double oldAmount, double multiplier)
+    private Effect CloneEffect(Effect effect)
     {
-        double result;
+        Effect clonedEffect = FastCloner.FastCloner.DeepClone(effect) ??
+                              throw new InvalidOperationException(
+                                  $"Expected to create a non-null instance of '{nameof(Effect)}'.");
 
-        switch (relativity)
+        clonedEffect.Id = 0;
+        clonedEffect.Targets.ForEach(target => target.Id = 0);
+        clonedEffect.Patterns.ForEach(pattern => pattern.Id = 0);
+        clonedEffect.Tech = null;
+        clonedEffect.TechId = 0;
+
+        return clonedEffect;
+    }
+
+    private double CalculateNewAmount(
+        TechName? tech, Relativity relativity, double oldAmount, int multiplier, string subtype = "")
+    {
+        if (tech.HasValue && TechSpecificMathRules.TryGetValue((tech.Value, relativity, subtype), out var techRule))
         {
-            case Relativity.ABSOLUTE:
-            case Relativity.ASSIGN:
-                result = oldAmount * multiplier;
-                break;
-
-            case Relativity.PERCENT:
-                result = 1 - (1 - oldAmount) * multiplier;
-                if (result < 0.05)
-                {
-                    result = 0.05;
-                }
-
-                break;
-
-            case Relativity.BASE_PERCENT:
-                result = (oldAmount - 1) * multiplier + 1;
-                break;
-
-            default:
-                result = oldAmount * multiplier;
-                break;
+            return Math.Round(techRule(oldAmount, multiplier), 2);
         }
 
-        // 🔹 Normalize to 2 decimals before saving
-        return Math.Round(result, 2);
+        if (MathRules.TryGetValue((relativity, subtype), out var customRule))
+        {
+            return Math.Round(customRule(oldAmount, multiplier), 2);
+        }
+
+        double newAmount = relativity switch
+        {
+            Relativity.ABSOLUTE => oldAmount * multiplier,
+            Relativity.ASSIGN => oldAmount * multiplier,
+            Relativity.PERCENT => Math.Max(1 - (1 - oldAmount) * multiplier, 0.05),
+            Relativity.BASE_PERCENT => Math.Max((oldAmount - 1) * multiplier + 1, 0.05),
+            var _ => throw new ArgumentNullException(nameof(relativity),
+                "Relativity should never be in a state to hit this, while calculating new amount."),
+        };
+
+        return Math.Round(newAmount, 2);
     }
 }
