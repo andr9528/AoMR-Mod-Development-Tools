@@ -17,6 +17,8 @@ public class Effect
     public Relativity Relativity { get; set; }
 
     public ICollection<Target> Targets { get; set; } = new List<Target>();
+    public ICollection<Pattern> Patterns { get; set; } = new List<Pattern>();
+
 
     public int TechId { get; set; }
     public Tech Tech { get; set; } = null!;

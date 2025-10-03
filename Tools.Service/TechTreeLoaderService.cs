@@ -60,6 +60,17 @@ public class TechTreeLoaderService : ITechTreeLoader
                     effect.Targets.Add(target);
                 }
 
+                foreach (XElement patternElem in effectElem.Descendants("pattern"))
+                {
+                    var pattern = new Pattern
+                    {
+                        Type = (string) patternElem.Attribute("type") ?? string.Empty,
+                        Value = (string) patternElem.Attribute("value") ?? string.Empty,
+                        Quantity = int.TryParse((string) patternElem.Attribute("quantity"), out int qty) ? qty : 0,
+                    };
+                    effect.Patterns.Add(pattern);
+                }
+
                 tech.Effects.Add(effect);
             }
 

@@ -130,6 +130,15 @@ public class RelicModService
         // ... add all other relic techs you want
     };
 
+    private readonly HashSet<TechName> _patternBasedTechs = new()
+    {
+        TechName.TAIL_OF_FEI_RESPAWN,
+        TechName.TUSK_OF_DANGKANG_SPAWN,
+        TechName.BRIDLE_OF_PEGASUS_RESPAWN,
+        TechName.GOLDEN_LIONS_RESPAWN,
+        TechName.RELIC_MONKEY_RESPAWN,
+    };
+
     public RelicModService(ToolsDatabaseContext db)
     {
         _db = db;
@@ -152,47 +161,82 @@ public class RelicModService
             }
 
             // Custom logic per-tech could live here
-            ApplyMultiplierToTech(tech, multiplier);
+            ApplyMultiplierToTechEffects(tech, multiplier);
         }
 
         await _db.SaveChangesAsync();
     }
 
-    private void ApplyMultiplierToTech(Tech tech, double multiplier)
+    private void ApplyMultiplierToTechEffects(Tech tech, double multiplier)
     {
+        var techEnum = Enum.TryParse<TechName>(ToScreamingSnake(tech.Name), out TechName techName)
+            ? techName
+            : (TechName?) null;
+
         foreach (Effect effect in tech.Effects)
         {
-            if (effect.MergeMode == MergeMode.ADD || effect.Amount == 0)
+            if (effect.Amount != 0)
             {
-                continue; // only modify effects that add values
+                ApplyAmountEffect(tech, effect, multiplier);
             }
 
-            double newAmount = CalculateNewAmount(effect.Relativity, effect.Amount, multiplier);
-
-            var newEffect = new Effect
+            if (techEnum.HasValue && _patternBasedTechs.Contains(techEnum.Value))
             {
-                MergeMode = MergeMode.ADD,
-                Type = effect.Type,
-                Action = effect.Action,
-                Subtype = effect.Subtype,
-                Resource = effect.Resource,
-                Unit = effect.Unit,
-                Generator = effect.Generator,
-                Relativity = effect.Relativity,
-                Amount = newAmount,
-            };
-
-            foreach (Target target in effect.Targets)
-            {
-                newEffect.Targets.Add(new Target
-                {
-                    Type = target.Type,
-                    Value = target.Value,
-                });
+                ApplyPatternEffect(tech, effect, multiplier);
             }
+        }
+    }
+
+    private void ApplyAmountEffect(Tech tech, Effect effect, double multiplier)
+    {
+        double newAmount = CalculateNewAmount(effect.Relativity, effect.Amount, multiplier);
+
+        Effect newEffect = CloneEffect(effect);
+        newEffect.Amount = newAmount;
+        newEffect.MergeMode = MergeMode.ADD;
+
+        tech.Effects.Add(newEffect);
+    }
+
+    private void ApplyPatternEffect(Tech tech, Effect effect, double multiplier)
+    {
+        foreach (Pattern pattern in effect.Patterns)
+        {
+            var newQuantity = (int) Math.Round(pattern.Quantity * multiplier);
+
+            Effect newEffect = CloneEffect(effect);
+            newEffect.MergeMode = MergeMode.ADD;
+            newEffect.Amount = 0; // no amount, only pattern
+
+            newEffect.Patterns.Clear();
+            newEffect.Patterns.Add(new Pattern
+            {
+                Type = pattern.Type,
+                Value = pattern.Value,
+                Quantity = newQuantity,
+            });
 
             tech.Effects.Add(newEffect);
         }
+    }
+
+    private Effect CloneEffect(Effect effect)
+    {
+        return new Effect
+        {
+            Type = effect.Type,
+            Action = effect.Action,
+            Subtype = effect.Subtype,
+            Resource = effect.Resource,
+            Unit = effect.Unit,
+            Generator = effect.Generator,
+            Relativity = effect.Relativity,
+            Targets = effect.Targets.Select(t => new Target
+            {
+                Type = t.Type,
+                Value = t.Value,
+            }).ToList(),
+        };
     }
 
     private double CalculateNewAmount(Relativity relativity, double oldAmount, double multiplier)
@@ -310,6 +354,14 @@ public class RelicModService
         foreach (Target target in effect.Targets)
         {
             effectElem.Add(new XElement("target", new XAttribute("type", target.Type), target.Value ?? string.Empty));
+        }
+
+        foreach (Pattern pattern in effect.Patterns)
+        {
+            var patternElem = new XElement("pattern", new XAttribute("type", pattern.Type),
+                new XAttribute("value", pattern.Value), new XAttribute("quantity", pattern.Quantity));
+
+            effectElem.Add(patternElem);
         }
 
         effectsElement.Add(effectElem);
