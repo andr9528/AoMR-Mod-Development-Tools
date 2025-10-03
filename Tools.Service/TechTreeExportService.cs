@@ -150,7 +150,14 @@ public class TechTreeExportService : ITechTreeExporter
 
     private void AddEffectToXml(XElement effectsElement, Effect effect)
     {
-        var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()));
+        if (string.IsNullOrWhiteSpace(effect.Type))
+        {
+            throw new InvalidOperationException(
+                $"Effect in tech '{effect.Tech?.Name ?? "Unknown"}' is missing required 'type' attribute.");
+        }
+
+        var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
+            new XAttribute("type", effect.Type));
 
         // Only include amount if it's meaningful (non-zero)
         if (effect.Amount != 0)
