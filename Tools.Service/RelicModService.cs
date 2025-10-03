@@ -285,7 +285,8 @@ public class RelicModService
     {
         // Gets all techs that have 1+ ADD effects
         var techs = _db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
-            .ThenInclude(effect => effect.Targets).ToList();
+            .ThenInclude(effect => effect.Targets).Include(tech => tech.Effects).ThenInclude(effect => effect.Patterns)
+            .ToList();
 
         var root = new XElement("techtreemods");
 
@@ -328,8 +329,13 @@ public class RelicModService
     private void AddEffectToXml(XElement effectsElement, Effect effect)
     {
         var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
-            new XAttribute("amount", effect.Amount.ToString("0.00")), // 🔹 round to 2 decimals
             new XAttribute("subtype", effect.Subtype), new XAttribute("relativity", effect.Relativity));
+
+        // Only include amount if it's meaningful (non-zero)
+        if (effect.Amount != 0)
+        {
+            effectElem.Add(new XAttribute("amount", effect.Amount.ToString("0.00"))); // rounded to 2 decimals
+        }
 
         if (!string.IsNullOrEmpty(effect.Action))
         {

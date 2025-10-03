@@ -1,7 +1,9 @@
 using Tools.Abstraction.Interfaces;
 using Tools.Model.Uno;
 using Tools.Service;
+using Tools.Uno.Abstraction;
 using Tools.Uno.Extensions;
+using Tools.Uno.NavigationRegion;
 using Tools.Uno.Styles;
 
 namespace Tools.Uno;
@@ -17,8 +19,9 @@ public partial class App : Application
         InitializeComponent();
     }
 
-    protected Window? MainWindow { get; private set; }
+    public static Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
+    public static IServiceProvider ServiceProvider { get; private set; }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -37,6 +40,7 @@ public partial class App : Application
         //MainWindow.SetWindowIcon();
 
         Host = builder.Build();
+        ServiceProvider = Host.Services;
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -100,6 +104,13 @@ public partial class App : Application
             {
                 services.AddToolsDatabase();
                 services.AddScoped<ITechTreeLoader, TechTreeLoaderService>();
+                services.AddScoped<RelicModService>();
+
+                services.AddSingleton<IModRegion, RelicModRegionDefinition>();
+
+                // Later you can add more tools the same way:
+                //services.AddSingleton<IModRegion, OtherToolRegionDefinition>();
+                //services.AddSingleton<IModRegion, ThirdToolRegionDefinition>();
             });
     }
 }
