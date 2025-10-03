@@ -8,13 +8,13 @@ namespace Tools.Uno.Presentation.Region;
 
 public class RelicModRegion : Border
 {
-    public RelicModRegion(RelicModService relicService, ITechTreeLoader loader)
+    public RelicModRegion(RelicModService relicService, ITechTreeLoader loader, ITechTreeExporter exporter)
     {
         this.ConfigureDefaultBorder();
 
         DataContext = new ViewModel.RelicModRegionViewModel();
 
-        var logic = new RelicModRegionLogic(relicService, loader);
+        var logic = new RelicModRegionLogic(relicService, loader, exporter);
         var ui = new RelicModRegionUserInterface(logic, (ViewModel.RelicModRegionViewModel) DataContext);
 
         Child = ui.CreateContentGrid();
