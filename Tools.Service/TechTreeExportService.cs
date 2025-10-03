@@ -159,12 +159,7 @@ public class TechTreeExportService : ITechTreeExporter
         var effectElem = new XElement("effect", new XAttribute("mergeMode", effect.MergeMode.ToString().ToLower()),
             new XAttribute("type", effect.Type));
 
-        // Only include amount if it's meaningful (non-zero)
-        if (effect.Amount != 0)
-        {
-            effectElem.Add(new XAttribute("amount",
-                effect.Amount.ToString("0.00", CultureInfo.InvariantCulture))); // rounded to 2 decimals
-        }
+        AddNonZeroAmountToXml(effect, effectElem);
 
         if (effect.Relativity != null && effect.Relativity != Relativity.NULL)
         {
@@ -206,6 +201,11 @@ public class TechTreeExportService : ITechTreeExporter
             effectElem.Add(new XAttribute("ignorerally", effect.IgnoreRally));
         }
 
+        if (effect.AllActions != null) // preserve e.g. allactions="1" or allactions=""
+        {
+            effectElem.Add(new XAttribute("allactions", effect.AllActions));
+        }
+
         if (!string.IsNullOrEmpty(effect.Generator))
         {
             effectElem.Add(new XAttribute("generator", effect.Generator));
@@ -222,6 +222,29 @@ public class TechTreeExportService : ITechTreeExporter
         }
 
         effectsElement.Add(effectElem);
+    }
+
+    private static void AddNonZeroAmountToXml(Effect effect, XElement effectElem)
+    {
+        if (effect.Amount == 0)
+        {
+            return;
+        }
+
+        string amountValue;
+
+        if (effect.MergeMode == MergeMode.REMOVE && !string.IsNullOrEmpty(effect.OriginalAmountString))
+        {
+            // ✅ Preserve exactly what was loaded
+            amountValue = effect.OriginalAmountString;
+        }
+        else
+        {
+            // ✅ Still format nicely for ADD
+            amountValue = effect.Amount.ToString("0.00", CultureInfo.InvariantCulture);
+        }
+
+        effectElem.Add(new XAttribute("amount", amountValue));
     }
 
     private XElement CreateTargetElement(Target target)

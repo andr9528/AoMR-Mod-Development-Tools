@@ -37,21 +37,25 @@ public class TechTreeLoaderService : ITechTreeLoader
 
             foreach (XElement effectElem in techElem.Descendants("effect"))
             {
+                var amountAttr = (string) effectElem.Attribute("amount");
+
                 var effect = new Effect
                 {
                     MergeMode = ParseEnum<MergeMode>((string) effectElem.Attribute("mergeMode") ?? "remove"),
                     Type = (string) effectElem.Attribute("type") ?? string.Empty,
                     Action = (string) effectElem.Attribute("action"),
-                    Amount = double.TryParse((string) effectElem.Attribute("amount"),
-                        NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double amt)
+                    Amount = double.TryParse(amountAttr, NumberStyles.Float | NumberStyles.AllowThousands,
+                        CultureInfo.InvariantCulture, out double amt)
                         ? amt
                         : 0,
+                    OriginalAmountString = amountAttr,
                     Subtype = (string) effectElem.Attribute("subtype") ?? string.Empty,
                     Resource = (string) effectElem.Attribute("resource"),
                     Unit = (string) effectElem.Attribute("unit"),
                     UnitType = (string) effectElem.Attribute("unittype"),
                     ArmorType = (string) effectElem.Attribute("armortype"),
                     IgnoreRally = (string) effectElem.Attribute("ignorerally"),
+                    AllActions = (string) effectElem.Attribute("allactions"),
                     Generator = (string) effectElem.Attribute("generator"),
                     Relativity = ParseRelativity((string) effectElem.Attribute("relativity")),
                 };

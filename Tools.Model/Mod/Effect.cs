@@ -10,6 +10,7 @@ public class Effect
     public string Type { get; set; } = string.Empty; // "Data", "CreateUnit", etc.
     public string? Action { get; set; }
     public double Amount { get; set; }
+    public string? OriginalAmountString { get; set; }
     public string Subtype { get; set; } = string.Empty;
     public string? Resource { get; set; }
     public string? Unit { get; set; }
@@ -17,6 +18,7 @@ public class Effect
     public string? UnitType { get; set; }
     public string? ArmorType { get; set; }
     public string? IgnoreRally { get; set; }
+    public string? AllActions { get; set; }
     public Relativity? Relativity { get; set; }
 
     public List<Target> Targets { get; set; } = new();
