@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tools.Model;
@@ -16,5 +17,10 @@ public class TargetConfiguration : IEntityTypeConfiguration<Target>
         builder.Property(t => t.Type).IsRequired().HasMaxLength(50);
 
         builder.Property(t => t.Value).HasMaxLength(200);
+
+        builder.Property(e => e.ExtraAttributes).HasConversion(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?) null),
+            v => JsonSerializer.Deserialize<Dictionary<string, string?>>(v, (JsonSerializerOptions?) null) ??
+                 new Dictionary<string, string?>());
     }
 }

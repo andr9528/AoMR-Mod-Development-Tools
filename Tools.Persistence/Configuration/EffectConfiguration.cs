@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tools.Model;
@@ -25,10 +26,6 @@ public class EffectConfiguration : IEntityTypeConfiguration<Effect>
 
         builder.Property(e => e.UnitType).HasMaxLength(100);
 
-        builder.Property(e => e.ArmorType).HasMaxLength(100);
-
-        builder.Property(e => e.Generator).HasMaxLength(100);
-
         builder.Property(e => e.Amount).HasColumnType("REAL"); // SQLite numeric
 
         builder.Property(e => e.MergeMode).HasConversion<string>() // store as string: "Remove", "Add"
@@ -39,5 +36,10 @@ public class EffectConfiguration : IEntityTypeConfiguration<Effect>
 
         builder.HasMany(e => e.Targets).WithOne(t => t.Effect).HasForeignKey(t => t.EffectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(e => e.ExtraAttributes).HasConversion(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?) null),
+            v => JsonSerializer.Deserialize<Dictionary<string, string?>>(v, (JsonSerializerOptions?) null) ??
+                 new Dictionary<string, string?>());
     }
 }

@@ -160,55 +160,14 @@ public class TechTreeExportService : ITechTreeExporter
             new XAttribute("type", effect.Type));
 
         AddNonZeroAmountToXml(effect, effectElem);
+        AddExistingPropertiesToXml(effect, effectElem);
 
-        if (effect.Relativity != null && effect.Relativity != Relativity.NULL)
+        foreach (var kvp in effect.ExtraAttributes)
         {
-            effectElem.Add(new XAttribute("relativity", StringExtensions.ToPascalCase(effect.Relativity.ToString())));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Subtype))
-        {
-            effectElem.Add(new XAttribute("subtype", effect.Subtype));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Action))
-        {
-            effectElem.Add(new XAttribute("action", effect.Action));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Resource))
-        {
-            effectElem.Add(new XAttribute("resource", effect.Resource));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Unit))
-        {
-            effectElem.Add(new XAttribute("unit", effect.Unit));
-        }
-
-        if (!string.IsNullOrEmpty(effect.UnitType))
-        {
-            effectElem.Add(new XAttribute("unittype", effect.UnitType));
-        }
-
-        if (!string.IsNullOrEmpty(effect.ArmorType))
-        {
-            effectElem.Add(new XAttribute("armortype", effect.ArmorType));
-        }
-
-        if (effect.IgnoreRally != null) // Export even if empty string
-        {
-            effectElem.Add(new XAttribute("ignorerally", effect.IgnoreRally));
-        }
-
-        if (effect.AllActions != null) // preserve e.g. allactions="1" or allactions=""
-        {
-            effectElem.Add(new XAttribute("allactions", effect.AllActions));
-        }
-
-        if (!string.IsNullOrEmpty(effect.Generator))
-        {
-            effectElem.Add(new XAttribute("generator", effect.Generator));
+            if (kvp.Value != null)
+            {
+                effectElem.Add(new XAttribute(kvp.Key, kvp.Value));
+            }
         }
 
         foreach (XElement targetElem in effect.Targets.Select(CreateTargetElement))
@@ -224,6 +183,40 @@ public class TechTreeExportService : ITechTreeExporter
         effectsElement.Add(effectElem);
     }
 
+    private static void AddExistingPropertiesToXml(Effect effect, XElement effectElem)
+    {
+        if (effect.Relativity != null && effect.Relativity != Relativity.NULL)
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.RELATIVITY.ToXmlName(),
+                StringExtensions.ToPascalCase(effect.Relativity.ToString())));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Subtype))
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.SUBTYPE.ToXmlName(), effect.Subtype));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Action))
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.ACTION.ToXmlName(), effect.Action));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Resource))
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.RESOURCE.ToXmlName(), effect.Resource));
+        }
+
+        if (!string.IsNullOrEmpty(effect.Unit))
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.UNIT.ToXmlName(), effect.Unit));
+        }
+
+        if (!string.IsNullOrEmpty(effect.UnitType))
+        {
+            effectElem.Add(new XAttribute(EffectAttribute.UNIT_TYPE.ToXmlName(), effect.UnitType));
+        }
+    }
+
     private static void AddNonZeroAmountToXml(Effect effect, XElement effectElem)
     {
         if (effect.Amount == 0)
@@ -235,31 +228,45 @@ public class TechTreeExportService : ITechTreeExporter
 
         if (effect.MergeMode == MergeMode.REMOVE && !string.IsNullOrEmpty(effect.OriginalAmountString))
         {
-            // ✅ Preserve exactly what was loaded
             amountValue = effect.OriginalAmountString;
         }
         else
         {
-            // ✅ Still format nicely for ADD
             amountValue = effect.Amount.ToString("0.00", CultureInfo.InvariantCulture);
         }
 
-        effectElem.Add(new XAttribute("amount", amountValue));
+        effectElem.Add(new XAttribute(EffectAttribute.AMOUNT.ToXmlName(), amountValue));
     }
 
     private XElement CreateTargetElement(Target target)
     {
-        var targetElem = new XElement("target", new XAttribute("type", target.Type), target.Value ?? string.Empty);
+        var targetElem = new XElement("target", new XAttribute(TargetAttribute.TYPE.ToXmlName(), target.Type),
+            target.Value ?? string.Empty);
+
+        foreach (var kvp in target.ExtraAttributes)
+        {
+            if (kvp.Value != null)
+            {
+                targetElem.Add(new XAttribute(kvp.Key, kvp.Value));
+            }
+        }
+
         return targetElem;
     }
 
     private XElement CreatePatternElement(Pattern pattern)
     {
-        var patternElem = new XElement("pattern", new XAttribute("type", pattern.Type),
-            new XAttribute("speed", pattern.Speed.ToString("0.00", CultureInfo.InvariantCulture)),
-            new XAttribute("radius", pattern.Radius.ToString("0.00", CultureInfo.InvariantCulture)),
-            new XAttribute("quantity", pattern.Quantity.ToString("0.00", CultureInfo.InvariantCulture)),
-            new XAttribute("minradius", pattern.MinRadius.ToString("0.00", CultureInfo.InvariantCulture)));
+        var patternElem = new XElement("pattern", new XAttribute(PatternAttribute.TYPE.ToXmlName(), pattern.Type),
+            new XAttribute(PatternAttribute.QUANTITY.ToXmlName(),
+                pattern.Quantity.ToString("0.00", CultureInfo.InvariantCulture)));
+
+        foreach (var kvp in pattern.ExtraAttributes)
+        {
+            if (kvp.Value != null)
+            {
+                patternElem.Add(new XAttribute(kvp.Key, kvp.Value));
+            }
+        }
 
         var offsetElem = new XElement("offset",
             new XAttribute("x", pattern.OffsetX.ToString("0.00", CultureInfo.InvariantCulture)),

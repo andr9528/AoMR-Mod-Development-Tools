@@ -250,7 +250,7 @@ public class RelicModService
         newEffect.MergeMode = MergeMode.ADD;
         newEffect.Amount = 0;
 
-        foreach (Pattern pattern in effect.Patterns.Select(x => BuildPattern(x, multiplier)))
+        foreach (Pattern pattern in effect.Patterns.Select(x => ClonePattern(x, multiplier)))
         {
             newEffect.Patterns.Clear();
             newEffect.Patterns.Add(pattern);
@@ -259,21 +259,17 @@ public class RelicModService
         return newEffect;
     }
 
-    private Pattern BuildPattern(Pattern pattern, int multiplier)
+    private Pattern ClonePattern(Pattern pattern, int multiplier)
     {
-        return new Pattern
-        {
-            Type = pattern.Type,
-            Value = pattern.Value,
-            Speed = pattern.Speed,
-            Radius = pattern.Radius,
-            MinRadius = pattern.MinRadius,
-            OffsetX = pattern.OffsetX,
-            OffsetY = pattern.OffsetY,
-            OffsetZ = pattern.OffsetZ,
+        Pattern clonedPattern = FastCloner.FastCloner.DeepClone(pattern) ??
+                                throw new InvalidOperationException(
+                                    $"Expected to create a non-null instance of '{nameof(Pattern)}'.");
 
-            Quantity = Math.Round(pattern.Quantity * multiplier, 2), // 🔹 important
-        };
+        clonedPattern.Quantity = Math.Round(pattern.Quantity * multiplier, 2);
+        clonedPattern.Id = 0;
+        clonedPattern.EffectId = 0;
+        clonedPattern.Effect = null;
+        return clonedPattern;
     }
 
     private Effect CloneEffect(Effect effect)

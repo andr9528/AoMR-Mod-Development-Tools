@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 using Tools.Abstraction.Enum;
+using Tools.Abstraction.Extensions;
 using Tools.Abstraction.Interfaces;
 using Tools.Model.Mod;
 using Tools.Persistence;
@@ -37,28 +38,34 @@ public class TechTreeLoaderService : ITechTreeLoader
 
             foreach (XElement effectElem in techElem.Descendants("effect"))
             {
-                var amountAttr = (string) effectElem.Attribute("amount");
+                var amountAttr = (string) effectElem.Attribute(EffectAttribute.AMOUNT.ToXmlName());
 
                 var effect = new Effect
                 {
-                    MergeMode = ParseEnum<MergeMode>((string) effectElem.Attribute("mergeMode") ?? "remove"),
-                    Type = (string) effectElem.Attribute("type") ?? string.Empty,
-                    Action = (string) effectElem.Attribute("action"),
+                    MergeMode = ParseEnum<MergeMode>(
+                        (string) effectElem.Attribute(EffectAttribute.MERGE_MODE.ToXmlName()) ?? "remove"),
+                    Type = (string) effectElem.Attribute(EffectAttribute.TYPE.ToXmlName()) ?? string.Empty,
+                    Action = (string) effectElem.Attribute(EffectAttribute.ACTION.ToXmlName()),
                     Amount = double.TryParse(amountAttr, NumberStyles.Float | NumberStyles.AllowThousands,
                         CultureInfo.InvariantCulture, out double amt)
                         ? amt
                         : 0,
                     OriginalAmountString = amountAttr,
-                    Subtype = (string) effectElem.Attribute("subtype") ?? string.Empty,
-                    Resource = (string) effectElem.Attribute("resource"),
-                    Unit = (string) effectElem.Attribute("unit"),
-                    UnitType = (string) effectElem.Attribute("unittype"),
-                    ArmorType = (string) effectElem.Attribute("armortype"),
-                    IgnoreRally = (string) effectElem.Attribute("ignorerally"),
-                    AllActions = (string) effectElem.Attribute("allactions"),
-                    Generator = (string) effectElem.Attribute("generator"),
-                    Relativity = ParseRelativity((string) effectElem.Attribute("relativity")),
+                    Subtype = (string) effectElem.Attribute(EffectAttribute.SUBTYPE.ToXmlName()) ?? string.Empty,
+                    Resource = (string) effectElem.Attribute(EffectAttribute.RESOURCE.ToXmlName()),
+                    Unit = (string) effectElem.Attribute(EffectAttribute.UNIT.ToXmlName()),
+                    UnitType = (string) effectElem.Attribute(EffectAttribute.UNIT_TYPE.ToXmlName()),
+                    Relativity = ParseRelativity((string) effectElem.Attribute(EffectAttribute.RELATIVITY.ToXmlName())),
                 };
+
+                foreach (XAttribute attr in effectElem.Attributes())
+                {
+                    string name = attr.Name.LocalName;
+                    if (!Effect.KnownAttributeNames.Contains(name))
+                    {
+                        effect.ExtraAttributes[name] = attr.Value;
+                    }
+                }
 
                 ParseEffectTargets(effectElem, effect);
                 ParseEffectPatterns(effectElem, effect);
@@ -83,16 +90,22 @@ public class TechTreeLoaderService : ITechTreeLoader
         {
             var pattern = new Pattern
             {
-                Type = (string) patternElem.Attribute("type") ?? string.Empty,
-                Value = (string) patternElem.Attribute("value") ?? string.Empty,
-                Quantity = double.TryParse((string) patternElem.Attribute("quantity"), NumberStyles.Float,
-                    CultureInfo.InvariantCulture, out double qty)
+                Type = (string) patternElem.Attribute(PatternAttribute.TYPE.ToXmlName()) ?? string.Empty,
+                Value = (string) patternElem.Attribute(PatternAttribute.VALUE.ToXmlName()) ?? string.Empty,
+                Quantity = double.TryParse((string) patternElem.Attribute(PatternAttribute.QUANTITY.ToXmlName()),
+                    NumberStyles.Float, CultureInfo.InvariantCulture, out double qty)
                     ? qty
                     : 0,
-                Speed = ParseDouble(patternElem.Attribute("speed")),
-                Radius = ParseDouble(patternElem.Attribute("radius")),
-                MinRadius = ParseDouble(patternElem.Attribute("minradius")),
             };
+
+            foreach (XAttribute attr in patternElem.Attributes())
+            {
+                string name = attr.Name.LocalName;
+                if (!Pattern.KnownAttributeNames.Contains(name))
+                {
+                    pattern.ExtraAttributes[name] = attr.Value;
+                }
+            }
 
             XElement? offsetElem = patternElem.Element("offset");
             if (offsetElem != null)
@@ -112,9 +125,19 @@ public class TechTreeLoaderService : ITechTreeLoader
         {
             var target = new Target
             {
-                Type = (string) targetElem.Attribute("type") ?? string.Empty,
+                Type = (string) targetElem.Attribute(TargetAttribute.TYPE.ToXmlName()) ?? string.Empty,
                 Value = targetElem.Value?.Trim(),
             };
+
+            foreach (XAttribute attr in targetElem.Attributes())
+            {
+                string name = attr.Name.LocalName;
+                if (!Pattern.KnownAttributeNames.Contains(name))
+                {
+                    target.ExtraAttributes[name] = attr.Value;
+                }
+            }
+
             effect.Targets.Add(target);
         }
     }

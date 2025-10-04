@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tools.Model.Mod;
@@ -18,5 +19,10 @@ public class PatternConfiguration : IEntityTypeConfiguration<Pattern>
 
         builder.HasOne(p => p.Effect).WithMany(e => e.Patterns).HasForeignKey(p => p.EffectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(e => e.ExtraAttributes).HasConversion(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?) null),
+            v => JsonSerializer.Deserialize<Dictionary<string, string?>>(v, (JsonSerializerOptions?) null) ??
+                 new Dictionary<string, string?>());
     }
 }
