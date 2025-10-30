@@ -28,7 +28,7 @@ public class ProtoService
     {
         XDocument xmlContent = exporter.ExportToXml(additionalContent);
 
-        string outPath = Path.Combine(Path.GetDirectoryName((string?) inputFilePath)!, "techtree_mods.xml");
+        string outPath = Path.Combine(Path.GetDirectoryName((string?) inputFilePath)!, "proto_mods.xml");
         xmlContent.Save(outPath);
 
         return outPath;

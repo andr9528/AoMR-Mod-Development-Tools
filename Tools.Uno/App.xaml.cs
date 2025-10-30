@@ -1,6 +1,7 @@
 using Tools.Abstraction.Interfaces;
 using Tools.Model.Uno;
-using Tools.Service;
+using Tools.Service.Mods.RelicMultiplier;
+using Tools.Service.Xml;
 using Tools.Uno.Abstraction;
 using Tools.Uno.Extensions;
 using Tools.Uno.NavigationRegion;
