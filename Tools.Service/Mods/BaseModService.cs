@@ -6,31 +6,29 @@ namespace Tools.Service.Mods;
 
 public abstract class BaseModService : IModService
 {
+    protected abstract string ModFolderName { get; }
+
     /// <inheritdoc />
     public XDocument? AdditionalTechTreeContent()
     {
-        // Determine the directory of the current source assembly
-        string assemblyDir =
-            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+        // Base folder where the app runs (bin output)
+        string baseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
 
-        // Build the full path to your XML file
-        string xmlPath = Path.Combine(assemblyDir, "techtree_mods.xml");
+        // Build full path: /Mods/<ModFolderName>/techtree_mods.xml
+        string xmlPath = Path.Combine(baseDir, "Mods", ModFolderName, "techtree_mods.xml");
 
-        // If the file doesn’t exist, just return null (nothing extra to append)
-        return !File.Exists(xmlPath) ? null : XDocument.Load(xmlPath);
+        return File.Exists(xmlPath) ? XDocument.Load(xmlPath) : null;
     }
 
     /// <inheritdoc />
     public XDocument? AdditionalProtoUnitContent()
     {
-        // Determine the directory of the current source assembly
-        string assemblyDir =
-            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+        // Base folder where the app runs (bin output)
+        string baseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
 
-        // Build the full path to your XML file
-        string xmlPath = Path.Combine(assemblyDir, "proto_mods.xml");
+        // Build full path: /Mods/<ModFolderName>/proto_mods.xml
+        string xmlPath = Path.Combine(baseDir, "Mods", ModFolderName, "proto_mods.xml");
 
-        // If the file doesn’t exist, just return null (nothing extra to append)
-        return !File.Exists(xmlPath) ? null : XDocument.Load(xmlPath);
+        return File.Exists(xmlPath) ? XDocument.Load(xmlPath) : null;
     }
 }

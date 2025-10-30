@@ -15,4 +15,11 @@
     <ProjectReference Include="..\Tools.Persistence\Tools.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+      <Content Include="Mods\**\*.xml">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      </Content>
+  </ItemGroup>
+
 </Project>

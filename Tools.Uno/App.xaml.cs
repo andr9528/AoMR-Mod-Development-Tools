@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tools.Abstraction.Enum;
 using Tools.Abstraction.Interfaces;
 using Tools.Model.Uno;
+using Tools.Service;
 using Tools.Service.Mods.RelicMultiplier;
 using Tools.Service.Xml;
 using Tools.Uno.Abstraction;
@@ -111,6 +112,9 @@ public partial class App : Application
                 services.AddKeyedScoped<IXmlExporter, ProtoExportService>(XmlKind.PROTO);
 
                 services.AddScoped<RelicModService>();
+
+                services.AddScoped<TechService>();
+                services.AddScoped<ProtoService>();
 
                 services.AddSingleton<IModRegion, RelicModRegionDefinition>();
 

@@ -11,12 +11,13 @@ public class RelicModRegionLogic
 {
     private readonly RelicModService relicService;
     private readonly TechService techService;
+    private readonly ProtoService protoService;
 
-
-    public RelicModRegionLogic(RelicModService relicService, TechService techService)
+    public RelicModRegionLogic(RelicModService relicService, TechService techService, ProtoService protoService)
     {
         this.relicService = relicService;
         this.techService = techService;
+        this.protoService = protoService;
     }
 
     public async Task SelectFileAsync(RelicModRegionViewModel viewModel)
@@ -64,6 +65,11 @@ public class RelicModRegionLogic
                 techService.ExportTechTreeAsync(viewModel.InputFile, relicService.AdditionalTechTreeContent());
 
             viewModel.Status = $"Saved Tech file to {techOutPath}...";
+            viewModel.Status = "Creating Proto File";
+            string protoOutPath =
+                protoService.ExportProtoUnitsAsync(viewModel.InputFile, relicService.AdditionalProtoUnitContent());
+
+            viewModel.Status = $"Saved Proto file to {protoOutPath}. Done.";
         }
         catch (Exception ex)
         {

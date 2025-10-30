@@ -313,4 +313,7 @@ public class RelicModService : BaseModService
 
         return Math.Round(newAmount, 2);
     }
+
+    /// <inheritdoc />
+    protected override string ModFolderName => "RelicMultiplier";
 }

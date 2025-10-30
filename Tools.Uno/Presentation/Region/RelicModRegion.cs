@@ -10,13 +10,13 @@ namespace Tools.Uno.Presentation.Region;
 
 public class RelicModRegion : Border
 {
-    public RelicModRegion(RelicModService relicService, TechService techService)
+    public RelicModRegion(RelicModService relicService, TechService techService, ProtoService protoService)
     {
         this.ConfigureDefaultBorder();
 
         DataContext = new RelicModRegionViewModel();
 
-        var logic = new RelicModRegionLogic(relicService, techService);
+        var logic = new RelicModRegionLogic(relicService, techService, protoService);
         var ui = new RelicModRegionUserInterface(logic, (RelicModRegionViewModel) DataContext);
 
         Child = ui.CreateContentGrid();
