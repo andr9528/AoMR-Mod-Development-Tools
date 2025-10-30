@@ -1,4 +1,6 @@
 using System.Xml.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Tools.Abstraction.Enum;
 using Tools.Abstraction.Interfaces;
 
 namespace Tools.Service;
@@ -7,9 +9,9 @@ public class ProtoService
 {
     private readonly IXmlExporter exporter;
 
-    public ProtoService(IXmlExporter exporter)
+    public ProtoService(IServiceProvider sp)
     {
-        this.exporter = exporter;
+        exporter = sp.GetRequiredKeyedService<IXmlExporter>(XmlKind.PROTO);
     }
 
     /// <summary>

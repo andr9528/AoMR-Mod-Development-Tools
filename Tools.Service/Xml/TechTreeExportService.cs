@@ -72,16 +72,16 @@ public class TechTreeExportService : IXmlExporter
                 string.Equals(add.Action, remove.Action, StringComparison.OrdinalIgnoreCase),
         };
 
-    private readonly ToolsDatabaseContext _db;
+    private readonly ToolsDatabaseContext db;
 
     public TechTreeExportService(ToolsDatabaseContext db)
     {
-        _db = db;
+        this.db = db;
     }
 
     public XDocument ExportToXml(XDocument? additionalContent)
     {
-        var techs = _db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
+        var techs = db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
             .ThenInclude(effect => effect.Targets).Include(tech => tech.Effects).ThenInclude(effect => effect.Patterns)
             .ToList();
 

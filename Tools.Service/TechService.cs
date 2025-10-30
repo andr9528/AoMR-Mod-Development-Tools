@@ -1,4 +1,6 @@
 using System.Xml.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Tools.Abstraction.Enum;
 using Tools.Abstraction.Interfaces;
 
 namespace Tools.Service;
@@ -8,10 +10,10 @@ public class TechService
     private readonly IXmlLoader loader;
     private readonly IXmlExporter exporter;
 
-    public TechService(IXmlLoader loader, IXmlExporter exporter)
+    public TechService(IServiceProvider sp)
     {
-        this.loader = loader;
-        this.exporter = exporter;
+        loader = sp.GetRequiredKeyedService<IXmlLoader>(XmlKind.TECH);
+        exporter = sp.GetRequiredKeyedService<IXmlExporter>(XmlKind.TECH);
     }
 
     /// <summary>

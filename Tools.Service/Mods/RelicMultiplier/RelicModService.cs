@@ -41,10 +41,10 @@ public class RelicModService : BaseModService
             },
         };
 
-    private readonly ToolsDatabaseContext _db;
+    private readonly ToolsDatabaseContext db;
 
     // list of techs we care about, based on enum
-    private readonly HashSet<TechName> _watchedTechs = new()
+    private readonly HashSet<TechName> watchedTechs = new()
     {
         TechName.PLOW_BONUS, // PlowBonus
         TechName.IRRIGATION_BONUS, // IrrigationBonus
@@ -160,7 +160,7 @@ public class RelicModService : BaseModService
         // ... add all other relic techs you want
     };
 
-    private readonly HashSet<TechName> _patternBasedTechs = new()
+    private readonly HashSet<TechName> patternBasedTechs = new()
     {
         TechName.TAIL_OF_FEI_RESPAWN,
         TechName.TUSK_OF_DANGKANG_SPAWN,
@@ -171,18 +171,18 @@ public class RelicModService : BaseModService
 
     public RelicModService(ToolsDatabaseContext db)
     {
-        _db = db;
+        this.db = db;
     }
 
     public async Task ApplyMultiplierAsync(int multiplier)
     {
-        var techs = _db.Techs.ToList();
+        var techs = db.Techs.ToList();
 
         var tasks = techs.Select(tech => Task.Run(() => ProcessTechForMultiplier(tech, multiplier)));
 
         await Task.WhenAll(tasks);
 
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
     }
 
     private void ProcessTechForMultiplier(Tech tech, int multiplier)
@@ -192,7 +192,7 @@ public class RelicModService : BaseModService
             return;
         }
 
-        if (!_watchedTechs.Contains(techName))
+        if (!watchedTechs.Contains(techName))
         {
             return;
         }
@@ -215,7 +215,7 @@ public class RelicModService : BaseModService
                 newEffects.Add(ApplyAmountEffect(effect, multiplier));
             }
 
-            if (techEnum.HasValue && _patternBasedTechs.Contains(techEnum.Value))
+            if (techEnum.HasValue && patternBasedTechs.Contains(techEnum.Value))
             {
                 newEffects.Add(ApplyPatternEffect(effect, multiplier));
             }

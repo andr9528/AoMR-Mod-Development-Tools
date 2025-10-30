@@ -10,7 +10,7 @@ namespace Tools.Tests.Mod;
 [TestFixture]
 public class RelicModServiceTests
 {
-    private RelicModService _service;
+    private RelicModService service;
 
     [SetUp]
     public void Setup()
@@ -18,7 +18,7 @@ public class RelicModServiceTests
         // Create a mock DbContext (no setup needed for math-only tests)
         var mockDb = new Mock<ToolsDatabaseContext>(new object[]
             {new Microsoft.EntityFrameworkCore.DbContextOptions<ToolsDatabaseContext>(),});
-        _service = new RelicModService(mockDb.Object);
+        service = new RelicModService(mockDb.Object);
     }
 
     [TestCase(10.0, 5, 50.00)]
@@ -176,7 +176,7 @@ public class RelicModServiceTests
         MethodInfo? method = typeof(RelicModService).GetMethod("FindEffectPairs",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        return (IEnumerable<(Effect Add, Effect Remove)>) method.Invoke(_service, [tech,]);
+        return (IEnumerable<(Effect Add, Effect Remove)>) method.Invoke(service, [tech,]);
     }
 
     private double InvokeCalc(Relativity relativity, double oldAmount, double multiplier)
@@ -184,6 +184,6 @@ public class RelicModServiceTests
         MethodInfo? method = typeof(RelicModService).GetMethod("CalculateNewAmount",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        return (double) method.Invoke(_service, [relativity, oldAmount, multiplier,]);
+        return (double) method.Invoke(service, [relativity, oldAmount, multiplier,]);
     }
 }

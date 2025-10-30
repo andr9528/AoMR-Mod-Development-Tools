@@ -10,11 +10,11 @@ namespace Tools.Service.Xml;
 
 public class TechTreeLoaderService : IXmlLoader
 {
-    private readonly ToolsDatabaseContext _db;
+    private readonly ToolsDatabaseContext db;
 
     public TechTreeLoaderService(ToolsDatabaseContext db)
     {
-        _db = db;
+        this.db = db;
     }
 
     public async Task LoadFromFileAsync(string xmlPath)
@@ -77,11 +77,11 @@ public class TechTreeLoaderService : IXmlLoader
         }
 
         // Insert into DB
-        _db.Techs.RemoveRange(_db.Techs); // Clear old
-        await _db.SaveChangesAsync();
+        db.Techs.RemoveRange(db.Techs); // Clear old
+        await db.SaveChangesAsync();
 
-        await _db.Techs.AddRangeAsync(techs);
-        await _db.SaveChangesAsync();
+        await db.Techs.AddRangeAsync(techs);
+        await db.SaveChangesAsync();
     }
 
     private static void ParseEffectPatterns(XElement effectElem, Effect effect)

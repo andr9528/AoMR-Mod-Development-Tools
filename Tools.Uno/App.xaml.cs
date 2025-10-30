@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Tools.Abstraction.Enum;
 using Tools.Abstraction.Interfaces;
 using Tools.Model.Uno;
 using Tools.Service.Mods.RelicMultiplier;
@@ -104,8 +106,10 @@ public partial class App : Application
             .ConfigureServices((context, services) =>
             {
                 services.AddToolsDatabase();
-                services.AddScoped<IXmlLoader, TechTreeLoaderService>();
-                services.AddScoped<IXmlExporter, TechTreeExportService>();
+                services.AddKeyedScoped<IXmlLoader, TechTreeLoaderService>(XmlKind.TECH);
+                services.AddKeyedScoped<IXmlExporter, TechTreeExportService>(XmlKind.TECH);
+                services.AddKeyedScoped<IXmlExporter, ProtoExportService>(XmlKind.PROTO);
+
                 services.AddScoped<RelicModService>();
 
                 services.AddSingleton<IModRegion, RelicModRegionDefinition>();
