@@ -14,6 +14,6 @@ public class RelicTrainerModRegionDefinition : IModRegion
     {
         Console.WriteLine($"Changing tool to: {nameof(RelicTrainerModRegionDefinition)}");
         // Use DI to build the region
-        return ActivatorUtilities.CreateInstance<RelicMultiplierModRegion>(services);
+        return ActivatorUtilities.CreateInstance<RelicTrainerModRegion>(services);
     }
 }

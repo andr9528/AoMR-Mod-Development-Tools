@@ -112,7 +112,7 @@ public class RelicMultiplierModRegionUserInterface : BaseUserInterface
         Grid grid = GridFactory.CreateDefaultGrid();
 
         Button button = ButtonFactory.CreateDefaultButton();
-        button.Content = "Generate Relic Mod";
+        button.Content = "Generate Mod";
         button.Click += async (_, _) => await logic.RunAsync();
 
         grid.Children.Add(button);

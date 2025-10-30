@@ -4,6 +4,7 @@ using Tools.Abstraction.Interfaces;
 using Tools.Model.Uno;
 using Tools.Service;
 using Tools.Service.Mods.RelicMultiplier;
+using Tools.Service.Mods.RelicTrainer;
 using Tools.Service.Xml;
 using Tools.Uno.Abstraction;
 using Tools.Uno.Extensions;
@@ -112,6 +113,7 @@ public partial class App : Application
                 services.AddKeyedScoped<IXmlExporter, ProtoExportService>(XmlKind.PROTO);
 
                 services.AddScoped<RelicMultiplierModService>();
+                services.AddScoped<RelicTrainerModService>();
 
                 services.AddScoped<TechService>();
                 services.AddScoped<ProtoService>();
