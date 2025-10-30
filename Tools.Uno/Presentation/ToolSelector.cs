@@ -51,7 +51,7 @@ public sealed partial class ToolSelector : NavigationView
     {
         if (menuList.SelectedItem is IModRegion region)
         {
-            Content = region.CreateControl(serviceProvider);
+            DispatcherQueue.TryEnqueue(() => Content = region.CreateControl(serviceProvider));
         }
     }
 

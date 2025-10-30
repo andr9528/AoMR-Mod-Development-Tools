@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace Tools.Uno.Presentation.Region.ViewModels;
 
-public partial class RelicModRegionViewModel : ObservableObject
+public partial class RelicMultiplierModRegionViewModel : ObservableObject
 {
     [ObservableProperty] private ObservableCollection<string> statusMessages = new();
     [ObservableProperty] private string? inputFile;
@@ -18,7 +18,7 @@ public partial class RelicModRegionViewModel : ObservableObject
         StatusMessages.Add(message);
     }
 
-    public RelicModRegionViewModel()
+    public RelicMultiplierModRegionViewModel()
     {
         AppendStatus("Idling...");
     }

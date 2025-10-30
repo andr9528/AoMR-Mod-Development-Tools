@@ -111,12 +111,13 @@ public partial class App : Application
                 services.AddKeyedScoped<IXmlExporter, TechTreeExportService>(XmlKind.TECH);
                 services.AddKeyedScoped<IXmlExporter, ProtoExportService>(XmlKind.PROTO);
 
-                services.AddScoped<RelicModService>();
+                services.AddScoped<RelicMultiplierModService>();
 
                 services.AddScoped<TechService>();
                 services.AddScoped<ProtoService>();
 
-                services.AddSingleton<IModRegion, RelicModRegionDefinition>();
+                services.AddSingleton<IModRegion, RelicMultiplierModRegionDefinition>();
+                services.AddSingleton<IModRegion, RelicTrainerModRegionDefinition>();
 
                 // Later you can add more tools the same way:
                 //services.AddSingleton<IModRegion, OtherToolRegionDefinition>();

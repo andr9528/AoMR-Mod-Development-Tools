@@ -7,18 +7,18 @@ using Path = System.IO.Path;
 
 namespace Tools.Uno.Presentation.Region.Logic;
 
-public class RelicModRegionLogic
+public class RelicMultiplierModRegionLogic
 {
-    private readonly RelicModService relicService;
+    private readonly RelicMultiplierModService relicMultiplierService;
     private readonly TechService techService;
     private readonly ProtoService protoService;
-    private readonly RelicModRegionViewModel viewModel;
+    private readonly RelicMultiplierModRegionViewModel viewModel;
 
-    public RelicModRegionLogic(
-        RelicModService relicService, TechService techService, ProtoService protoService,
-        RelicModRegionViewModel viewModel)
+    public RelicMultiplierModRegionLogic(
+        RelicMultiplierModService relicMultiplierService, TechService techService, ProtoService protoService,
+        RelicMultiplierModRegionViewModel viewModel)
     {
-        this.relicService = relicService;
+        this.relicMultiplierService = relicMultiplierService;
         this.techService = techService;
         this.protoService = protoService;
         this.viewModel = viewModel;
@@ -63,18 +63,18 @@ public class RelicModRegionLogic
             await techService.ImportTechTreeAsync(viewModel.InputFile);
 
             viewModel.AppendStatus("Applying multiplier...");
-            await relicService.ApplyMultiplierAsync(viewModel.Multiplier);
+            await relicMultiplierService.ApplyMultiplierAsync(viewModel.Multiplier);
 
             viewModel.AppendStatus("Creating Tech Tree File...");
-            string techOutPath =
-                techService.ExportTechTreeAsync(viewModel.InputFile, relicService.AdditionalTechTreeContent());
-
+            string techOutPath = techService.ExportTechTreeAsync(viewModel.InputFile,
+                relicMultiplierService.AdditionalTechTreeContent());
             viewModel.AppendStatus($"Saved Tech Tree file to {techOutPath}.");
-            viewModel.AppendStatus("Creating Proto Units File...");
-            string protoOutPath =
-                protoService.ExportProtoUnitsAsync(viewModel.InputFile, relicService.AdditionalProtoUnitContent());
 
+            viewModel.AppendStatus("Creating Proto Units File...");
+            string protoOutPath = protoService.ExportProtoUnitsAsync(viewModel.InputFile,
+                relicMultiplierService.AdditionalProtoUnitContent());
             viewModel.AppendStatus($"Saved Proto Units file to {protoOutPath}.");
+
             viewModel.AppendStatus($"Done.");
         }
         catch (Exception ex)

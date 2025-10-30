@@ -4,16 +4,16 @@ using Tools.Uno.Presentation.Region;
 
 namespace Tools.Uno.NavigationRegion;
 
-public class RelicModRegionDefinition : IModRegion
+public class RelicMultiplierModRegionDefinition : IModRegion
 {
-    public string DisplayName => "Relic Mod";
+    public string DisplayName => "Relic Multiplier Mod";
 
     public IconElement Icon => new SymbolIcon(Symbol.Favorite);
 
     public UIElement CreateControl(IServiceProvider services)
     {
-        Console.WriteLine($"Changing tool to: {nameof(RelicModRegion)}");
+        Console.WriteLine($"Changing tool to: {nameof(RelicMultiplierModRegion)}");
         // Use DI to build the region
-        return ActivatorUtilities.CreateInstance<RelicModRegion>(services);
+        return ActivatorUtilities.CreateInstance<RelicMultiplierModRegion>(services);
     }
 }

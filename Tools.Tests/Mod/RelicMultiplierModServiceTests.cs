@@ -8,9 +8,9 @@ using Tools.Service.Mods.RelicMultiplier;
 namespace Tools.Tests.Mod;
 
 [TestFixture]
-public class RelicModServiceTests
+public class RelicMultiplierModServiceTests
 {
-    private RelicModService service;
+    private RelicMultiplierModService service;
 
     [SetUp]
     public void Setup()
@@ -18,7 +18,7 @@ public class RelicModServiceTests
         // Create a mock DbContext (no setup needed for math-only tests)
         var mockDb = new Mock<ToolsDatabaseContext>(new object[]
             {new Microsoft.EntityFrameworkCore.DbContextOptions<ToolsDatabaseContext>(),});
-        service = new RelicModService(mockDb.Object);
+        service = new RelicMultiplierModService(mockDb.Object);
     }
 
     [TestCase(10.0, 5, 50.00)]
@@ -173,7 +173,7 @@ public class RelicModServiceTests
 
     private IEnumerable<(Effect Add, Effect Remove)> InvokeFindEffectPairs(Tech tech)
     {
-        MethodInfo? method = typeof(RelicModService).GetMethod("FindEffectPairs",
+        MethodInfo? method = typeof(RelicMultiplierModService).GetMethod("FindEffectPairs",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
         return (IEnumerable<(Effect Add, Effect Remove)>) method.Invoke(service, [tech,]);
@@ -181,7 +181,7 @@ public class RelicModServiceTests
 
     private double InvokeCalc(Relativity relativity, double oldAmount, double multiplier)
     {
-        MethodInfo? method = typeof(RelicModService).GetMethod("CalculateNewAmount",
+        MethodInfo? method = typeof(RelicMultiplierModService).GetMethod("CalculateNewAmount",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
         return (double) method.Invoke(service, [relativity, oldAmount, multiplier,]);

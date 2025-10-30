@@ -14,7 +14,7 @@ using Tools.Persistence;
 
 namespace Tools.Service.Mods.RelicMultiplier;
 
-public class RelicModService : BaseModService
+public class RelicMultiplierModService : BaseModService
 {
     private const string ARMOR_VULNERABILITY_SUBTYPE = "ArmorVulnerability";
     private const string ON_HIT_EFFECT_SUBTYPE = "OnHitEffect";
@@ -169,7 +169,7 @@ public class RelicModService : BaseModService
         TechName.RELIC_MONKEY_RESPAWN,
     };
 
-    public RelicModService(ToolsDatabaseContext db)
+    public RelicMultiplierModService(ToolsDatabaseContext db)
     {
         this.db = db;
     }
