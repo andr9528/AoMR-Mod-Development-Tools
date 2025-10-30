@@ -9,14 +9,13 @@ namespace Tools.Uno.Presentation.Region.Logic;
 public class RelicModRegionLogic
 {
     private readonly RelicModService relicService;
-    private readonly ITechTreeLoader loader;
-    private readonly ITechTreeExporter exporter;
+    private readonly TechService techService;
 
-    public RelicModRegionLogic(RelicModService relicService, ITechTreeLoader loader, ITechTreeExporter exporter)
+
+    public RelicModRegionLogic(RelicModService relicService, TechService techService)
     {
         this.relicService = relicService;
-        this.loader = loader;
-        this.exporter = exporter;
+        this.techService = techService;
     }
 
     public async Task SelectFileAsync(RelicModRegionViewModel viewModel)
@@ -54,16 +53,15 @@ public class RelicModRegionLogic
         try
         {
             viewModel.Status = "Loading XML...";
-            await loader.LoadFromFileAsync(viewModel.InputFile);
+            await techService.ImportTechTreeAsync(viewModel.InputFile);
 
             viewModel.Status = "Applying multiplier...";
             await relicService.ApplyMultiplierAsync(viewModel.Multiplier);
 
-            XDocument output = exporter.ExportToXml();
-            string outPath = Path.Combine(Path.GetDirectoryName((string?) viewModel.InputFile)!, "techtree_mods.xml");
-            output.Save(outPath);
+            viewModel.Status = "Creating Tech File";
+            string techOutPath = techService.ExportTechTreeAsync(viewModel.InputFile);
 
-            viewModel.Status = $"Done! Saved to {outPath}";
+            viewModel.Status = $"Saved Tech file to {techOutPath}...";
         }
         catch (Exception ex)
         {

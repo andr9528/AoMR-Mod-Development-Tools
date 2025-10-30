@@ -103,8 +103,8 @@ public partial class App : Application
             .ConfigureServices((context, services) =>
             {
                 services.AddToolsDatabase();
-                services.AddScoped<ITechTreeLoader, TechTreeLoaderService>();
-                services.AddScoped<ITechTreeExporter, TechTreeExportService>();
+                services.AddScoped<IXmlLoader, TechTreeLoaderService>();
+                services.AddScoped<IXmlExporter, TechTreeExportService>();
                 services.AddScoped<RelicModService>();
 
                 services.AddSingleton<IModRegion, RelicModRegionDefinition>();

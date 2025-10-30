@@ -8,7 +8,7 @@ using Tools.Persistence;
 
 namespace Tools.Service;
 
-public class TechTreeLoaderService : ITechTreeLoader
+public class TechTreeLoaderService : IXmlLoader
 {
     private readonly ToolsDatabaseContext _db;
 

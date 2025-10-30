@@ -9,7 +9,7 @@ namespace Tools.Uno.Presentation.Region;
 
 public class RelicModRegion : Border
 {
-    public RelicModRegion(RelicModService relicService, ITechTreeLoader loader, ITechTreeExporter exporter)
+    public RelicModRegion(RelicModService relicService, IXmlLoader loader, IXmlExporter exporter)
     {
         this.ConfigureDefaultBorder();
 

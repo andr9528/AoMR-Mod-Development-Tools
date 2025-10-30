@@ -11,7 +11,7 @@ using Tools.Persistence;
 
 namespace Tools.Service;
 
-public class TechTreeExportService : ITechTreeExporter
+public class TechTreeExportService : IXmlExporter
 {
     private const string COST_SUBTYPE = "Cost";
 
@@ -79,7 +79,7 @@ public class TechTreeExportService : ITechTreeExporter
         _db = db;
     }
 
-    public XDocument ExportToXml()
+    public XDocument ExportToXml(XDocument? additionalContent)
     {
         var techs = _db.Techs.Where(t => t.Effects.Any(e => e.MergeMode == MergeMode.ADD)).Include(tech => tech.Effects)
             .ThenInclude(effect => effect.Targets).Include(tech => tech.Effects).ThenInclude(effect => effect.Patterns)
