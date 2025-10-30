@@ -3,29 +3,17 @@ using Tools.Abstraction.Interfaces;
 
 namespace Tools.Service;
 
-public class TechService
+public class ProtoService
 {
-    private readonly IXmlLoader loader;
     private readonly IXmlExporter exporter;
 
-    public TechService(IXmlLoader loader, IXmlExporter exporter)
+    public ProtoService(IXmlExporter exporter)
     {
-        this.loader = loader;
         this.exporter = exporter;
     }
 
     /// <summary>
-    /// Imports a technology tree from the specified file asynchronously.
-    /// </summary>
-    /// <param name="path">The file path from which to load the technology tree. Cannot be null or empty.</param>
-    /// <returns>A task that represents the asynchronous import operation.</returns>
-    public async Task ImportTechTreeAsync(string path)
-    {
-        await loader.LoadFromFileAsync(path);
-    }
-
-    /// <summary>
-    /// Exports the technology tree to an XML file.
+    /// Exports the proto units to an XML file.
     /// </summary>
     /// <param name="inputFilePath">
     /// The input file path used to determine the output directory.
@@ -36,7 +24,7 @@ public class TechService
     /// <returns>
     /// Returns the output file path.
     /// </returns>
-    public string ExportTechTreeAsync(string inputFilePath, XDocument? additionalContent = null)
+    public string ExportProtoUnitsAsync(string inputFilePath, XDocument? additionalContent = null)
     {
         XDocument xmlContent = exporter.ExportToXml(additionalContent);
 

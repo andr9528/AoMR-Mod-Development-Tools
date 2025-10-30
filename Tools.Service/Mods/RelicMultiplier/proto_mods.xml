@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<protomods>
+    <unit name="RelicMultiplier_Wolf">
+        <icon>resources\nature\relics\relic_statue_monkey_icon.png</icon>
+        <unittype>Unit</unittype>
+        <movementtype>Air</movementtype>
+        <trainPoints>30</trainPoints>
+        <los>0</los>
+        <initialhitpoints>9999.0000</initialhitpoints>
+        <maxhitpoints>9999.0000</maxhitpoints>
+        <armor type="Hack" value="0.9500" />
+        <armor type="Pierce" value="0.9500" />
+        <armor type="Crush" value="0.9500" />
+        <maxvelocity>10.0000</maxvelocity>
+        <flag>NonAutoFormedUnit</flag>
+        <flag>NotSelectable</flag>
+        <flag>DoNotShowOnMiniMap</flag>
+        <flag>OnlyInEditor</flag>
+        <flag>NoIdleActions</flag>
+        <flag>NonSolid</flag>
+        <flag>NoHPBar</flag>
+        <flag>PlaceAnywhere</flag>
+        <flag>HideFromDialogs</flag>
+        <flag>NotDeathTracked</flag>
+        <flag>Invulnerable</flag>
+    </unit>
+</protomods>

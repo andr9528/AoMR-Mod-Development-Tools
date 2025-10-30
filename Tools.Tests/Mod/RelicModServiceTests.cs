@@ -3,7 +3,7 @@ using Moq;
 using Tools.Abstraction.Enum;
 using Tools.Model.Mod;
 using Tools.Persistence;
-using Tools.Service;
+using Tools.Service.Mods.RelicMultiplier;
 
 namespace Tools.Tests.Mod;
 

@@ -1,6 +1,7 @@
 using System.Xml.Linq;
 using Tools.Abstraction.Interfaces;
 using Tools.Service;
+using Tools.Service.Mods.RelicMultiplier;
 using Tools.Uno.Presentation.Region.ViewModels;
 using Path = System.IO.Path;
 
@@ -59,7 +60,8 @@ public class RelicModRegionLogic
             await relicService.ApplyMultiplierAsync(viewModel.Multiplier);
 
             viewModel.Status = "Creating Tech File";
-            string techOutPath = techService.ExportTechTreeAsync(viewModel.InputFile);
+            string techOutPath =
+                techService.ExportTechTreeAsync(viewModel.InputFile, relicService.AdditionalTechTreeContent());
 
             viewModel.Status = $"Saved Tech file to {techOutPath}...";
         }

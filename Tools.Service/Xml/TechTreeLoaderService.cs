@@ -6,7 +6,7 @@ using Tools.Abstraction.Interfaces;
 using Tools.Model.Mod;
 using Tools.Persistence;
 
-namespace Tools.Service;
+namespace Tools.Service.Xml;
 
 public class TechTreeLoaderService : IXmlLoader
 {
@@ -144,7 +144,7 @@ public class TechTreeLoaderService : IXmlLoader
 
     private T ParseEnum<T>(string value) where T : struct
     {
-        return Enum.TryParse<T>(value, true, out T result) ? result : default;
+        return Enum.TryParse(value, true, out T result) ? result : default;
     }
 
     private static double ParseDouble(XAttribute? attr)

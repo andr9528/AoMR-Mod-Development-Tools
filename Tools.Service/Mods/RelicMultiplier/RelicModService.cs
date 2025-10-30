@@ -1,18 +1,20 @@
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Tools.Abstraction.Enum;
 using Tools.Abstraction.Extensions;
+using Tools.Abstraction.Interfaces;
 using Tools.Model;
 using Tools.Model.Mod;
 using Tools.Persistence;
 
 // ReSharper disable CommentTypo
 
-namespace Tools.Service;
+namespace Tools.Service.Mods.RelicMultiplier;
 
-public class RelicModService
+public class RelicModService : BaseModService
 {
     private const string ARMOR_VULNERABILITY_SUBTYPE = "ArmorVulnerability";
     private const string ON_HIT_EFFECT_SUBTYPE = "OnHitEffect";
@@ -185,7 +187,7 @@ public class RelicModService
 
     private void ProcessTechForMultiplier(Tech tech, int multiplier)
     {
-        if (!Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName))
+        if (!Enum.TryParse(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName))
         {
             return;
         }
@@ -200,7 +202,7 @@ public class RelicModService
 
     private void ApplyMultiplierToTechEffects(Tech tech, int multiplier)
     {
-        var techEnum = Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName)
+        var techEnum = Enum.TryParse(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName)
             ? techName
             : (TechName?) null;
 
@@ -229,10 +231,9 @@ public class RelicModService
             throw new ArgumentNullException(nameof(effect.Relativity), $"Expected a non-null value for property.");
         }
 
-        var techEnum =
-            Enum.TryParse<TechName>(StringExtensions.ToScreamingSnake(effect.Tech?.Name ?? ""), out TechName tn)
-                ? tn
-                : (TechName?) null;
+        var techEnum = Enum.TryParse(StringExtensions.ToScreamingSnake(effect.Tech?.Name ?? ""), out TechName tn)
+            ? tn
+            : (TechName?) null;
 
         double newAmount = CalculateNewAmount(techEnum, (Relativity) effect.Relativity, effect.Amount, multiplier,
             effect.Subtype);

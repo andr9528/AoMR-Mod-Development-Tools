@@ -9,7 +9,7 @@ using Tools.Persistence;
 
 // ReSharper disable StringLiteralTypo
 
-namespace Tools.Service;
+namespace Tools.Service.Xml;
 
 public class TechTreeExportService : IXmlExporter
 {
