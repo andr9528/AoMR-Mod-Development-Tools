@@ -12,15 +12,19 @@ public class RelicModRegionLogic
     private readonly RelicModService relicService;
     private readonly TechService techService;
     private readonly ProtoService protoService;
+    private readonly RelicModRegionViewModel viewModel;
 
-    public RelicModRegionLogic(RelicModService relicService, TechService techService, ProtoService protoService)
+    public RelicModRegionLogic(
+        RelicModService relicService, TechService techService, ProtoService protoService,
+        RelicModRegionViewModel viewModel)
     {
         this.relicService = relicService;
         this.techService = techService;
         this.protoService = protoService;
+        this.viewModel = viewModel;
     }
 
-    public async Task SelectFileAsync(RelicModRegionViewModel viewModel)
+    public async Task SelectFileAsync()
     {
         var picker = new Windows.Storage.Pickers.FileOpenPicker();
         picker.FileTypeFilter.Add(".xml");
@@ -32,49 +36,51 @@ public class RelicModRegionLogic
         if (file != null)
         {
             viewModel.InputFile = file.Path;
-            viewModel.Status = $"File selected ({viewModel.InputFile}). Waiting...";
+            viewModel.AppendStatus($"File selected - {viewModel.InputFile}.");
+            viewModel.AppendStatus($"Waiting....");
         }
     }
 
-    public async Task RunAsync(RelicModRegionViewModel viewModel)
+    public async Task RunAsync()
     {
-        viewModel.Status = "Generating...";
+        viewModel.AppendStatus("Generating File...");
 
         if (string.IsNullOrEmpty(viewModel.InputFile))
         {
-            viewModel.Status = "Please select a techtree.xml file first.";
+            viewModel.AppendStatus("Please select a techtree.xml file first.");
             return;
         }
 
         if (viewModel.Multiplier <= 0)
         {
-            viewModel.Status = "Multiplier must be positive.";
+            viewModel.AppendStatus("Multiplier must be positive.");
             return;
         }
 
         try
         {
-            viewModel.Status = "Loading XML...";
+            viewModel.AppendStatus("Loading Tech Tree XML...");
             await techService.ImportTechTreeAsync(viewModel.InputFile);
 
-            viewModel.Status = "Applying multiplier...";
+            viewModel.AppendStatus("Applying multiplier...");
             await relicService.ApplyMultiplierAsync(viewModel.Multiplier);
 
-            viewModel.Status = "Creating Tech File";
+            viewModel.AppendStatus("Creating Tech Tree File...");
             string techOutPath =
                 techService.ExportTechTreeAsync(viewModel.InputFile, relicService.AdditionalTechTreeContent());
 
-            viewModel.Status = $"Saved Tech file to {techOutPath}...";
-            viewModel.Status = "Creating Proto File";
+            viewModel.AppendStatus($"Saved Tech Tree file to {techOutPath}.");
+            viewModel.AppendStatus("Creating Proto Units File...");
             string protoOutPath =
                 protoService.ExportProtoUnitsAsync(viewModel.InputFile, relicService.AdditionalProtoUnitContent());
 
-            viewModel.Status = $"Saved Proto file to {protoOutPath}. Done.";
+            viewModel.AppendStatus($"Saved Proto Units file to {protoOutPath}.");
+            viewModel.AppendStatus($"Done.");
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
-            viewModel.Status = $"Error: {ex.Message}";
+            viewModel.AppendStatus($"Error: {ex.Message}");
         }
     }
 }

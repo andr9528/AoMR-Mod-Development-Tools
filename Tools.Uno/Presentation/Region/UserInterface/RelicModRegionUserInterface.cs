@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml.Interop;
 using Tools.Uno.Extensions;
 using Tools.Uno.Presentation.Converter;
 using Tools.Uno.Presentation.Core;
@@ -23,7 +24,7 @@ public class RelicModRegionUserInterface : BaseUserInterface
     {
         // Cut row heights down: 3 rows of 30 each, last row auto for status
         grid.DefineRows(GridUnitType.Auto, [20, 20, 20,]);
-        grid.DefineRows(sizes: [20,]);
+        grid.DefineRows(GridUnitType.Star, [20,]);
         grid.DefineColumns(sizes: [100,]);
     }
 
@@ -33,7 +34,9 @@ public class RelicModRegionUserInterface : BaseUserInterface
         grid.Children.Add(CreateFilePickerGroup().SetRow(0));
         grid.Children.Add(CreateMultiplierGroup().SetRow(1));
         grid.Children.Add(CreateRunButton().SetRow(2));
-        grid.Children.Add(CreateStatusText().SetRow(3));
+        grid.Children.Add(CreateStatusView().SetRow(3));
+
+        //grid.ShowGridLines(Colors.DeepPink);
     }
 
     private Grid CreateFilePickerGroup()
@@ -42,7 +45,7 @@ public class RelicModRegionUserInterface : BaseUserInterface
 
         Button button = ButtonFactory.CreateDefaultButton();
         button.Content = "Select techtree.xml";
-        button.Click += async (_, _) => await logic.SelectFileAsync(viewModel);
+        button.Click += async (_, _) => await logic.SelectFileAsync();
 
         grid.Children.Add(button);
         return grid;
@@ -98,26 +101,51 @@ public class RelicModRegionUserInterface : BaseUserInterface
 
         Button button = ButtonFactory.CreateDefaultButton();
         button.Content = "Generate Relic Mod";
-        button.Click += async (_, _) => await logic.RunAsync(viewModel);
+        button.Click += async (_, _) => await logic.RunAsync();
 
         grid.Children.Add(button);
         return grid;
     }
 
-    private TextBlock CreateStatusText()
+    private ListView CreateStatusView()
+    {
+        var list = new ListView
+        {
+            IsItemClickEnabled = false,
+            SelectionMode = ListViewSelectionMode.None,
+            Margin = new Thickness(20, 20, 20, 8),
+            Padding = new Thickness(5),
+            ItemsPanel = new ItemsPanelTemplate(() => new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+            }),
+            ItemTemplate = new DataTemplate(CreateStatusItemTextBlock),
+
+            BorderBrush = new SolidColorBrush(Colors.Black),
+            BorderThickness = new Thickness(1),
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        var binding = new Binding()
+        {
+            Path = nameof(viewModel.StatusMessages),
+            Mode = BindingMode.OneWay,
+        };
+
+        list.SetBinding(ItemsControl.ItemsSourceProperty, binding);
+
+        return list;
+    }
+
+    private TextBlock CreateStatusItemTextBlock()
     {
         var textBlock = new TextBlock
         {
             Foreground = new SolidColorBrush(Colors.Black),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.WrapWholeWords,
         };
 
-        textBlock.SetBinding(TextBlock.TextProperty, new Binding
-        {
-            Path = nameof(viewModel.Status),
-            Mode = BindingMode.OneWay,
-        });
+        textBlock.SetBinding(TextBlock.TextProperty, new Binding());
 
         return textBlock;
     }

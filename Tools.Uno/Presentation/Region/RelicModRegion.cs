@@ -16,7 +16,8 @@ public class RelicModRegion : Border
 
         DataContext = new RelicModRegionViewModel();
 
-        var logic = new RelicModRegionLogic(relicService, techService, protoService);
+        var logic = new RelicModRegionLogic(relicService, techService, protoService,
+            (RelicModRegionViewModel) DataContext);
         var ui = new RelicModRegionUserInterface(logic, (RelicModRegionViewModel) DataContext);
 
         Child = ui.CreateContentGrid();
