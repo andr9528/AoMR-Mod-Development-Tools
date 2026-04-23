@@ -1,4 +1,4 @@
-namespace Tools.Abstraction.Interfaces;
+namespace Tools.Abstraction.Interfaces.Services;
 
 public interface IXmlLoader
 {
