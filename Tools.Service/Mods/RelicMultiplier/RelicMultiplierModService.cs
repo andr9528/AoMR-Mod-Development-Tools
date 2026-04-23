@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Tools.Abstraction.Enum;
 using Tools.Abstraction.Extensions;
 using Tools.Abstraction.Interfaces;
@@ -18,6 +19,9 @@ public class RelicMultiplierModService : BaseModService
 {
     private const string ARMOR_VULNERABILITY_SUBTYPE = "ArmorVulnerability";
     private const string ON_HIT_EFFECT_SUBTYPE = "OnHitEffect";
+    private const string TECH_SPECIFIC_RULE = "Tech Specific";
+    private const string CUSTOM_RULE = "Custom";
+    private const string DEFAULT_RULE = "Default";
 
     private static readonly Dictionary<(Relativity Rel, string Subtype), Func<double, int, double>> MathRules = new()
     {
@@ -42,6 +46,7 @@ public class RelicMultiplierModService : BaseModService
         };
 
     private readonly ToolsDatabaseContext db;
+    private readonly ILogger<RelicMultiplierModService> logger;
 
     // list of techs we care about, based on enum
     private readonly HashSet<TechName> watchedTechs = new()
@@ -157,6 +162,17 @@ public class RelicMultiplierModService : BaseModService
         TechName.RELIC_DECEPTIVE_WOODEN_SWORD, // RelicDeceptiveWoodenSword
         TechName.RELIC_SHACHIHOKO_ORNAMENT, // RelicShachihokoOrnament
         TechName.RELIC_CARTOGRAPHERS_HOURGLASS, // RelicCartographersHourglass
+        TechName.RELIC_XOCOLATL, // RelicXocolatl
+        TechName.RELIC_EHECAILACOCOZCATL, // RelicEhecailacocozcatl
+        TechName.RELIC_MAYAHUELS_MAGUEY, // RelicMayahuelsMaguey
+        TechName.RELIC_BONE_SHARDS_OF_MICTLAN, // RelicBoneShardsOfMictlan
+        TechName.RELIC_HUMMINGBIRDS_BEAK, // RelicHummingbirdsBeak
+        TechName.RELIC_ATLATL_OF_EHECATL, // RelicAtlatlOfEhecatl
+        TechName.RELIC_XIUHCOATL, // RelicXiuhcoatl
+        TechName.RELIC_GREAT_TZOMPANTLI, // RelicGreatTzompantli
+        TechName.RELIC_TREASURE_OF_TLACOPAN, // RelicTreasureOfTlacopan
+        TechName.RELIC_TREASURE_OF_COYOACAN, // RelicTreasureOfCoyoacan
+        TechName.RELIC_TREASURE_OF_MEXICALTZINGO, // RelicTreasureOfMexicaltzingo
         // ... add all other relic techs you want
     };
 
@@ -169,9 +185,10 @@ public class RelicMultiplierModService : BaseModService
         TechName.RELIC_MONKEY_RESPAWN,
     };
 
-    public RelicMultiplierModService(ToolsDatabaseContext db)
+    public RelicMultiplierModService(ToolsDatabaseContext db, ILogger<RelicMultiplierModService> logger)
     {
         this.db = db;
+        this.logger = logger;
     }
 
     public async Task ApplyMultiplierAsync(int multiplier)
@@ -187,24 +204,25 @@ public class RelicMultiplierModService : BaseModService
 
     private void ProcessTechForMultiplier(Tech tech, int multiplier)
     {
-        if (!Enum.TryParse(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName))
+        if (!TryGetTechName(tech.Name, out var techName) || techName == null)
         {
             return;
         }
 
-        if (!watchedTechs.Contains(techName))
+        if (!watchedTechs.Contains((TechName) techName))
         {
             return;
         }
+
+        logger.BeginScope(techName ?? throw new ArgumentNullException());
+        logger.LogInformation("Processing: {TechName}", tech.Name);
 
         ApplyMultiplierToTechEffects(tech, multiplier);
     }
 
     private void ApplyMultiplierToTechEffects(Tech tech, int multiplier)
     {
-        var techEnum = Enum.TryParse(StringExtensions.ToScreamingSnake(tech.Name), out TechName techName)
-            ? techName
-            : (TechName?) null;
+        TryGetTechName(tech.Name, out var techEnum);
 
         var newEffects = new List<Effect>();
 
@@ -224,6 +242,15 @@ public class RelicMultiplierModService : BaseModService
         tech.Effects.AddRange(newEffects);
     }
 
+    private bool TryGetTechName(string xmlName, out TechName? techName)
+    {
+        techName = Enum.TryParse(StringExtensions.ToScreamingSnake(xmlName), out TechName parsedName)
+            ? parsedName
+            : (TechName?) null;
+
+        return techName != null;
+    }
+
     private Effect ApplyAmountEffect(Effect effect, int multiplier)
     {
         if (effect.Relativity == null)
@@ -231,12 +258,12 @@ public class RelicMultiplierModService : BaseModService
             throw new ArgumentNullException(nameof(effect.Relativity), $"Expected a non-null value for property.");
         }
 
-        var techEnum = Enum.TryParse(StringExtensions.ToScreamingSnake(effect.Tech?.Name ?? ""), out TechName tn)
-            ? tn
-            : (TechName?) null;
+        TryGetTechName(effect.Tech?.Name ?? "", out var techEnum);
+
+        int targetDecimals = effect.GetCalculationDecimalPlaces(logger);
 
         double newAmount = CalculateNewAmount(techEnum, (Relativity) effect.Relativity, effect.Amount, multiplier,
-            effect.Subtype);
+            targetDecimals, effect.Subtype);
 
         Effect newEffect = CloneEffect(effect);
         newEffect.Amount = newAmount;
@@ -289,29 +316,50 @@ public class RelicMultiplierModService : BaseModService
     }
 
     private double CalculateNewAmount(
-        TechName? tech, Relativity relativity, double oldAmount, int multiplier, string subtype = "")
+        TechName? tech, Relativity relativity, double oldAmount, int multiplier, int targetDecimals,
+        string subtype = "")
     {
+        string ruleType;
+        double newAmount;
+
         if (tech.HasValue && TechSpecificMathRules.TryGetValue((tech.Value, relativity, subtype), out var techRule))
         {
-            return Math.Round(techRule(oldAmount, multiplier), 2);
+            ruleType = TECH_SPECIFIC_RULE;
+            newAmount = techRule(oldAmount, multiplier);
+        }
+        else if (MathRules.TryGetValue((relativity, subtype), out var customRule))
+        {
+            ruleType = CUSTOM_RULE;
+            newAmount = customRule(oldAmount, multiplier);
+        }
+        else
+        {
+            ruleType = DEFAULT_RULE;
+
+            newAmount = relativity switch
+            {
+                Relativity.ABSOLUTE => oldAmount * multiplier,
+                Relativity.ASSIGN => oldAmount * multiplier,
+                Relativity.PERCENT => Math.Max(1 - (1 - oldAmount) * multiplier, 0.05),
+                Relativity.BASE_PERCENT => Math.Max((oldAmount - 1) * multiplier + 1, 0.05),
+                var _ => throw new ArgumentNullException(nameof(relativity),
+                    "Relativity should never be in a state to hit this, while calculating new amount."),
+            };
         }
 
-        if (MathRules.TryGetValue((relativity, subtype), out var customRule))
-        {
-            return Math.Round(customRule(oldAmount, multiplier), 2);
-        }
+        double roundedAmount = Math.Round(newAmount, targetDecimals);
 
-        double newAmount = relativity switch
-        {
-            Relativity.ABSOLUTE => oldAmount * multiplier,
-            Relativity.ASSIGN => oldAmount * multiplier,
-            Relativity.PERCENT => Math.Max(1 - (1 - oldAmount) * multiplier, 0.05),
-            Relativity.BASE_PERCENT => Math.Max((oldAmount - 1) * multiplier + 1, 0.05),
-            var _ => throw new ArgumentNullException(nameof(relativity),
-                "Relativity should never be in a state to hit this, while calculating new amount."),
-        };
+        logger.LogDebug("Amount target | Relativity={Relativity} | Subtype={Subtype}", relativity, subtype);
 
-        return Math.Round(newAmount, 2);
+        logger.LogDebug(
+            "Amount modifiers | Multiplier={Multiplier} | TargetDecimals={TargetDecimals} | RuleType={RuleType}",
+            multiplier, targetDecimals, ruleType);
+
+        logger.LogDebug(
+            "Amount result | OldAmount={OldAmount:G17} | NewAmount={NewAmount:G17} | RoundedAmount={RoundedAmount}",
+            oldAmount, newAmount, roundedAmount);
+
+        return roundedAmount;
     }
 
     /// <inheritdoc />
