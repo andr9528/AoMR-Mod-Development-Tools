@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Tools.Abstraction.Enum;
 using Tools.Abstraction.Extensions;
 using Tools.Abstraction.Interfaces.Services;
@@ -204,7 +205,7 @@ public class TechTreeExportService : IXmlExporter
         effectsElement.Add(effectElem);
     }
 
-    private static void AddExistingPropertiesToXml(Effect effect, XElement effectElem)
+    private void AddExistingPropertiesToXml(Effect effect, XElement effectElem)
     {
         if (effect.Relativity != null && effect.Relativity != Relativity.NULL)
         {
@@ -238,7 +239,7 @@ public class TechTreeExportService : IXmlExporter
         }
     }
 
-    private static void AddNonZeroAmountToXml(Effect effect, XElement effectElem)
+    private void AddNonZeroAmountToXml(Effect effect, XElement effectElem)
     {
         if (effect.Amount == 0)
         {
@@ -253,7 +254,7 @@ public class TechTreeExportService : IXmlExporter
         }
         else
         {
-            amountValue = effect.Amount.ToString("0.00", CultureInfo.InvariantCulture);
+            amountValue = effect.FormatAmountForExport();
         }
 
         effectElem.Add(new XAttribute(EffectAttribute.AMOUNT.ToXmlName(), amountValue));
