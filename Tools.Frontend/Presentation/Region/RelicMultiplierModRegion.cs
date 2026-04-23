@@ -10,14 +10,15 @@ namespace Tools.Frontend.Presentation.Region;
 public class RelicMultiplierModRegion : Border
 {
     public RelicMultiplierModRegion(
-        RelicMultiplierModService relicMultiplierService, TechService techService, ProtoService protoService)
+        RelicMultiplierModService relicMultiplierService, TechService techService, ProtoService protoService,
+        ILoggerFactory loggerFactory)
     {
         this.ConfigureDefaultBorder();
 
         DataContext = new RelicMultiplierModRegionViewModel();
 
         var logic = new RelicMultiplierModRegionLogic(relicMultiplierService, techService, protoService,
-            (RelicMultiplierModRegionViewModel) DataContext);
+            (RelicMultiplierModRegionViewModel) DataContext, loggerFactory);
         var ui = new RelicMultiplierModRegionUserInterface(logic, (RelicMultiplierModRegionViewModel) DataContext);
 
         Child = ui.CreateContentGrid();
