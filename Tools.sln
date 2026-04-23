@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11702.344 oobstable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Uno", "Tools.Uno\Tools.Uno.csproj", "{AE3C9C2D-E625-47DA-A8EF-42A21C04DB18}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Frontend", "Tools.Frontend\Tools.Frontend.csproj", "{AE3C9C2D-E625-47DA-A8EF-42A21C04DB18}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Tests", "Tools.Tests\Tools.Tests.csproj", "{792F3110-83B7-71F5-2A48-82C4F5EFF803}"
 EndProject
@@ -25,6 +23,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Persistence", "Tools.Persistence\Tools.Persistence.csproj", "{C402053C-B0B8-48AF-BF4B-F516D4209BED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Service", "Tools.Service\Tools.Service.csproj", "{AA2AE0BB-D01E-42D4-976D-3ACE989D08F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Startup", "Tools.Startup\Tools.Startup.csproj", "{51D794F5-83A7-4B4A-9D10-64457F40035C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,12 +60,13 @@ Global
 		{AA2AE0BB-D01E-42D4-976D-3ACE989D08F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA2AE0BB-D01E-42D4-976D-3ACE989D08F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA2AE0BB-D01E-42D4-976D-3ACE989D08F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51D794F5-83A7-4B4A-9D10-64457F40035C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51D794F5-83A7-4B4A-9D10-64457F40035C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D794F5-83A7-4B4A-9D10-64457F40035C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51D794F5-83A7-4B4A-9D10-64457F40035C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{792F3110-83B7-71F5-2A48-82C4F5EFF803} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D317A4D-E9B2-4334-97FF-E5FE35BED175}
