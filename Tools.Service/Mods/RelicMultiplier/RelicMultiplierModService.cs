@@ -17,6 +17,8 @@ namespace Tools.Service.Mods.RelicMultiplier;
 
 public class RelicMultiplierModService : BaseModService
 {
+    public const string CALCULATE_NEW_AMOUNT_METHOD_NAME = nameof(CalculateNewAmount);
+
     private const string ARMOR_VULNERABILITY_SUBTYPE = "ArmorVulnerability";
     private const string ON_HIT_EFFECT_SUBTYPE = "OnHitEffect";
     private const string TECH_SPECIFIC_RULE = "Tech Specific";

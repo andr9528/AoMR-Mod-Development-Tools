@@ -14,6 +14,8 @@ namespace Tools.Service.Xml;
 
 public class TechTreeExportService : IXmlExporter
 {
+    public const string FIND_EFFECT_PAIRS_METHOD_NAME = nameof(FindEffectPairs);
+
     private const string COST_SUBTYPE = "Cost";
 
     private const string RESOURCE_TRICKLE_RATE_SUBTYPE = "ResourceTrickleRate";
