@@ -1,4 +1,6 @@
 using System.Reflection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Tools.Abstraction.Enum;
 using Tools.Model.Mod;
@@ -18,7 +20,9 @@ public class RelicMultiplierModServiceTests
         // Create a mock DbContext (no setup needed for math-only tests)
         var mockDb = new Mock<ToolsDatabaseContext>(new object[]
             {new Microsoft.EntityFrameworkCore.DbContextOptions<ToolsDatabaseContext>(),});
-        service = new RelicMultiplierModService(mockDb.Object);
+        var loggerMock = new Mock<ILogger<RelicMultiplierModService>>();
+
+        service = new RelicMultiplierModService(mockDb.Object, loggerMock.Object);
     }
 
     [TestCase(10.0, 5, 50.00)]
