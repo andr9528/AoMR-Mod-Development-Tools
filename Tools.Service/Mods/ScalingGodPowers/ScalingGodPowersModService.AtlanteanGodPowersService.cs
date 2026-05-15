@@ -1,4 +1,6 @@
-﻿using Tools.Abstraction.Enum;
+using Microsoft.Extensions.Logging;
+using Tools.Abstraction.Enum;
+using Tools.Persistence;
 
 namespace Tools.Service.Mods.ScalingGodPowers;
 
@@ -6,6 +8,16 @@ public partial class ScalingGodPowersModService
 {
     private class AtlanteanGodPowersService
     {
+        private readonly ToolsDatabaseContext toolsDatabaseContext;
+        private readonly ILogger<AtlanteanGodPowersService> logger;
+
+        public AtlanteanGodPowersService(
+            ToolsDatabaseContext toolsDatabaseContext, ILogger<AtlanteanGodPowersService> logger)
+        {
+            this.toolsDatabaseContext = toolsDatabaseContext;
+            this.logger = logger;
+        }
+
         private static readonly HashSet<GodPowerName> GodPowers =
         [
             GodPowerName.DECONSTRUCTION, // Deconstruction

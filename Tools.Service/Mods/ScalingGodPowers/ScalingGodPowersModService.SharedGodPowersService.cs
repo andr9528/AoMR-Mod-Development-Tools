@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Logging;
 using Tools.Abstraction.Enum;
+using Tools.Persistence;
 
 namespace Tools.Service.Mods.ScalingGodPowers;
 
@@ -6,6 +8,15 @@ public partial class ScalingGodPowersModService
 {
     private class SharedGodPowersService
     {
+        private readonly ToolsDatabaseContext toolsDatabaseContext;
+        private readonly ILogger<SharedGodPowersService> logger;
+
+        public SharedGodPowersService(ToolsDatabaseContext toolsDatabaseContext, ILogger<SharedGodPowersService> logger)
+        {
+            this.toolsDatabaseContext = toolsDatabaseContext;
+            this.logger = logger;
+        }
+
         private static readonly HashSet<GodPowerName> GodPowers =
         [
             GodPowerName.TITAN_GATE, // TitanGate
