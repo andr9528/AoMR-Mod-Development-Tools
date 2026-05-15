@@ -27,4 +27,10 @@
       </Content>
   </ItemGroup>
 
+  <ItemGroup>
+  <Compile Update="Mods\ScalingGodPowers\ScalingGodPowersModService.*.cs">
+    <DependentUpon>ScalingGodPowersModService.cs</DependentUpon>
+  </Compile>
+</ItemGroup>
+
 </Project>
