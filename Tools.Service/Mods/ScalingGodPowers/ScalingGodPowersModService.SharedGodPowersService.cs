@@ -41,7 +41,9 @@ public partial class ScalingGodPowersModService
         }
 
         /// <summary>
-        /// 
+        /// Modifies ´AbstractTitan´, affecting currently active ones.
+        /// Adds + 10 Percent Health.
+        /// Adds + 10 Base Percent Damage.
         /// </summary>
         private void AddTitanGateScalingData()
         {
